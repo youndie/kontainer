@@ -50,7 +50,7 @@ hypothesis was confirmed or refuted.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-01](docs/backlog/B-01-ping-over-the-socket.md) `[ ]` | A linuxX64 test pings Docker over the unix socket | P1 | S | - |
+| [B-01](docs/backlog/B-01-ping-over-the-socket.md) `[~]` | A linuxX64 test pings Docker over the unix socket | P1 | S | - |
 | [B-02](docs/backlog/B-02-containers-and-typed-errors.md) `[ ]` | Containers by label, inspect, pause, stop, start, kill, with typed errors | P1 | M | B-01 |
 | [B-03](docs/backlog/B-03-exec-and-logs.md) `[ ]` | Exec returns the exit code, stdout and stderr separately; logs are readable | P1 | M | B-01 |
 | [B-04](docs/backlog/B-04-fixture-from-compose.md) `[ ]` | A fixture comes up from a compose file under its own project name | P1 | M | B-02 |
