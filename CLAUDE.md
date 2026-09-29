@@ -3,8 +3,9 @@
 Containers for Kotlin/Native tests: fixtures from compose files, ports kontainer chooses, readiness by
 protocol, and faults in the middle of a test. v1 is `linuxX64` only; the JVM comes later.
 
-**State (2026-09-29): B-01 done** — `kontainer-docker` pings the engine over its unix socket on
-`linuxX64` (research H1 confirmed). The research and the backlog are on `main`; the feature and
+**State (2026-09-29): B-01 and B-02 done** — `kontainer-docker` pings the engine over its unix
+socket on `linuxX64` (research H1 confirmed), and finds, inspects, pauses, stops, starts and kills
+containers with typed errors. The research and the backlog are on `main`; the feature and
 module documents are drafted on the branch `docs/v1-layers` and become `active` on `main` as the code
 lands. This paragraph is dated so that its age is visible; `backlog.md` is what cannot go stale.
 
