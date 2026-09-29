@@ -47,6 +47,22 @@ internal object DockerCli {
         return ScratchContainer(id, mark)
     }
 
+    /**
+     * A container that runs [script] with `sh -c` and then sleeps, labelled like [startPostgres]. With
+     * [tty] it gets a terminal, which changes how its log is written.
+     */
+    fun startShell(
+        script: String,
+        tty: Boolean = false,
+    ): ScratchContainer {
+        val mark = "b03-" + Random.nextLong().toULong().toString(36)
+        val terminal = if (tty) listOf("-t") else emptyList()
+        val arguments =
+            listOf("run", "-d") + terminal +
+                listOf("--label", "kontainer.test=$mark", "postgres:18-alpine", "sh", "-c", "$script; sleep 300")
+        return ScratchContainer(run(*arguments.toTypedArray()), mark)
+    }
+
     fun remove(container: ScratchContainer) {
         run("rm", "-f", "-v", container.id)
     }

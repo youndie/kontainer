@@ -68,6 +68,8 @@ A library that asks for a second description would be one more thing to keep in 
 | The exit code of an exec is read afterwards from `GET /exec/{id}/json` | same run: `ExitCode 3`, `Running false` |
 | `POST …/pause` → `204`; a second `pause` → `409`; an unknown container → `404 {"message":"No such container: …"}` | curl |
 | A second `start` of a running container and a second `stop` of a stopped one answer **`304`**; `kill` of a stopped container answers **`409`**; **`unpause` of a container that is not paused answers `500`** `{"message":"Container … is not paused"}`, not `409` | curl, B-02, 2026-09-29 |
+| `POST /exec/{id}/start` answers `Content-Type: application/vnd.docker.raw-stream` with no length, no chunked encoding and no `Connection: close` — with or without `Connection: close` in the request — and its body is framed; `GET /containers/{id}/logs` is chunked and labelled `…multiplexed-stream`, or `…raw-stream` (unframed, CR LF line ends) for a container with a TTY | `curl -i`, B-03, 2026-09-29 |
+| `exec` in a stopped container answers `409 {"message":"container … is not running"}` | curl, B-03 |
 | A stopped container's `NetworkSettings.Ports` is `{}`: the engine reports published ports only for a running one | curl, B-02 |
 | **Paused:** the published port still **accepts** TCP (3 of 3), and the protocol does not answer (`pg_isready` from the host exits 2) | curl + `/dev/tcp` + `docker run --network host postgres:18-alpine pg_isready` |
 | **Stopped:** the published port **refuses** TCP (2 of 2) | same |
@@ -87,8 +89,16 @@ stop and start, `409` for pause and kill, `500` for unpause. The client maps `40
 and treats `304` as success; `500` stays an `EngineError`, so a caller that wants an idempotent unpause
 (kontainer's `paused { }`, B-07) has to decide by the container's state, not by the error.
 
-**Consequence 6.** The API is small and plain. Everything v1 needs is ordinary request/response
-HTTP over the socket, including exec output; nothing needs a hijacked connection.
+**Consequence 6.** The API is small and plain, and nothing v1 needs takes a hijacked connection.
+
+**Correction found while implementing B-03:** this used to say exec output is ordinary
+request/response HTTP. Through curl it is; through an HTTP client it is not. `POST /exec/{id}/start`
+answers with neither `Content-Length` nor chunked encoding, and without `Connection: close` even when
+the request asks for it, so the body ends only when the engine closes the connection. Ktor's CIO client
+refuses such a response ("request body length should be specified, chunked transfer encoding should be
+used or keep-alive should be disabled"). The working replacement is one request written to the socket
+and read to its close (`kontainer-docker/src/commonMain/kotlin/io/github/youndie/kontainer/docker/RawResponse.kt`);
+logs are chunked and stay on the client.
 
 ### 1.3 The transport and the alternative client
 
@@ -226,8 +236,8 @@ anything else.** Settled by B-06, with the negative control of pointing it at Po
 **H4. kotlin.test on native has no class-level lifecycle hooks**, so a fixture lives from its first
 use to an explicit `down` or to the reaper. Settled while writing B-04.
 
-**H5. The exec output arrives as a plain body through Ktor as it does through curl** (no connection
-upgrade needed). Settled by B-03.
+**H5 — refuted by B-03.** The exec output does not arrive as a plain body through Ktor; see the
+correction under Consequence 6.
 
 **Open question 1.** What else is out of scope for v1, in the user's words. Until answered, the
 scope is the list in [backlog.md](../../backlog.md).
