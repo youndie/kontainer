@@ -25,6 +25,8 @@ acceptance line that could not be exercised.
 
 - AC: on the hosted runner, `PingTest` prints the engine's version and passes; research H2 becomes a
   fact or a refutation with the run's link.
+- AC: five runs of `KafkaStartTest` on the hosted runner, their `KAFKA-START` figures added to research §1.4
+  beside the build box's (B-09 handed this half over).
 - Anchors: `kontainer-docker/src/commonTest/kotlin/io/github/youndie/kontainer/docker/PingTest.kt`,
   `.github/workflows/`
 

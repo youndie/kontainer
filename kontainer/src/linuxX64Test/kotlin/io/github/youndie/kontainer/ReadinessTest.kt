@@ -169,7 +169,7 @@ class ReadinessTest {
     private fun tcpConnects(port: Int): Boolean =
         runCommand(listOf("bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/$port"), emptyMap()).exitCode == 0
 
-    private companion object {
+    internal companion object {
         val POSTGRES =
             """
             services:
@@ -197,7 +197,7 @@ class ReadinessTest {
             """
 
         /** A single KRaft node, as kafkakn's fixture, advertising the port kontainer chose (research D5). */
-        fun kafka(controllerListenerNames: Boolean): String =
+        fun kafka(controllerListenerNames: Boolean = true): String =
             listOfNotNull(
                 "services:",
                 "  broker:",
