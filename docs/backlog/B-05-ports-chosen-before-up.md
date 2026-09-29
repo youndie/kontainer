@@ -1,7 +1,7 @@
 ---
 id: B-05
 title: "Host ports are chosen before up and survive stop and start"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-2-fixture
