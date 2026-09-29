@@ -44,7 +44,8 @@ into `main` on green**:
 5. Documents: a feature or module document moves from `docs/v1-layers` to `main` as `active` in the
    item that makes its behaviour real and verified, with `**Automated:**` lines for the scenarios its
    tests cover. In the same step it is deleted on `docs/v1-layers` (`docs: drop <id>, landed on main`)
-   and `main` is merged into `docs/v1-layers`, so the drafts branch never conflicts with what landed.
+   and `main` is merged into `docs/v1-layers`. That merge conflicts in one place, the coverage map in
+   `docs/README.md`: keep the drafts branch's side, which already lists the landed documents (B-03).
 
 ## Rules
 
