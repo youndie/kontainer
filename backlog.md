@@ -50,7 +50,6 @@ hypothesis was confirmed or refuted.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-01](docs/backlog/B-01-ping-over-the-socket.md) `[~]` | A linuxX64 test pings Docker over the unix socket | P1 | S | - |
 | [B-02](docs/backlog/B-02-containers-and-typed-errors.md) `[ ]` | Containers by label, inspect, pause, stop, start, kill, with typed errors | P1 | M | B-01 |
 | [B-03](docs/backlog/B-03-exec-and-logs.md) `[ ]` | Exec returns the exit code, stdout and stderr separately; logs are readable | P1 | M | B-01 |
 | [B-04](docs/backlog/B-04-fixture-from-compose.md) `[ ]` | A fixture comes up from a compose file under its own project name | P1 | M | B-02 |
@@ -62,8 +61,13 @@ hypothesis was confirmed or refuted.
 | [B-11](docs/backlog/B-11-kafkakn-fault-tests-in-ci.md) `[ ]` | kafkakn's seven fault tests run in CI on their own broker | P1 | M | B-09, B-10 |
 | [B-08](docs/backlog/B-08-reap-abandoned-fixtures.md) `[ ]` | Fixtures left by a dead test process are removed on the next up | P2 | S | B-04 |
 | [B-12](docs/backlog/B-12-s3kn-brings-its-own-minio.md) `[ ]` | s3kn's linuxX64Test brings up its own MinIO | P2 | S | B-10 |
+| [B-13](docs/backlog/B-13-ci-on-a-hosted-runner.md) `[?]` | The suite runs on a hosted runner once the repository has a remote | P2 | S | B-01 |
 
-## Closed (0)
+## Closed (1)
+
+**The client**
+
+- [B-01](docs/backlog/B-01-ping-over-the-socket.md) `[x]` - A linuxX64 test pings Docker over the unix socket
 
 <!-- END INDEX -->
 

@@ -90,11 +90,17 @@ HTTP over the socket, including exec output; nothing needs a hijacked connection
 | `HttpRequestBuilder.unixSocket(path)` is in `ktor-client-core`, common source set | [api.ktor.io — unixSocket](https://api.ktor.io/ktor-client-core/io.ktor.client.request/unix-socket.html) |
 | The CIO client supports Unix domain sockets from Ktor 3.2.0 | [Ktor 3.2.0 release post](https://blog.jetbrains.com/kotlin/2025/06/ktor-3-2-0-is-now-available/) |
 | The portfolio's Kotlin/Native libraries pin Ktor 3.6.0 | `gradle/libs.versions.toml` in `youndie/kafkakn@f2b75a8`, `youndie/mostik@16ae64e`, `youndie/petich@55cb6fd` |
+| **The CIO client speaks HTTP over a unix socket on `linuxX64`** (H1, confirmed): `HttpClient(CIO)` with `unixSocket(path)` per request reached the build box's engine, `GET /_ping` and `GET /v1.44/version`, Ktor 3.6.0, Kotlin 2.4.20 | B-01, `kontainer-docker/src/commonTest/kotlin/io/github/youndie/kontainer/docker/PingTest.kt`, run on the build box 2026-09-29 |
+| Left to itself, CIO reports a missing socket as `kotlinx.io.IOException: Failed to connect to UnixSocketAddress(/nonexistent.sock)` — the path, not the reason | B-01, the same test with the socket preflight disabled, 2026-09-29 |
 | kmp-docker-client (Ktor, JVM + linuxX64 + Node) has exec, logs, pause and port lookup; no readiness, no macOS native; marked WIP | [LimeBeck/kmp-docker-client README](https://github.com/LimeBeck/kmp-docker-client), read 2026-09-29 |
 
-**Consequence 7.** The transport exists in the version already pinned — on paper. Whether the CIO
-engine actually speaks over a unix socket on `linuxX64` is not verified (H1), and it is the first
-thing the backlog does, because everything else is built on it.
+**Consequence 7.** The transport exists in the version already pinned, and B-01 confirmed it on
+`linuxX64` (H1). A missing socket still has to be told from a forbidden one before the request, since
+the client's error names only the path.
+
+**Correction found while implementing B-01:** this document used to imply the client's error on a
+missing socket names nothing. It names the path; what it does not say is whether the socket is absent
+or forbidden, which is why the preflight stays.
 
 ---
 
@@ -201,11 +207,11 @@ removes projects whose owner is dead, and says which (B-08).
 five starts on the box and in CI before kafkakn adopts it; the fallback is one owned fixture per test
 class, restored to ready between tests.
 
-**H1. The CIO client speaks HTTP over a unix socket on `linuxX64`.** Documented as a common API,
-not verified on this target. Settled by B-01.
+**H1 — confirmed by B-01** (§1.3): the CIO client speaks HTTP over a unix socket on `linuxX64`.
 
-**H2. `ubuntu-latest` runs a Docker Engine that accepts `/v1.44` and has Compose v2.** Settled by
-B-01's CI run.
+**H2. `ubuntu-latest` runs a Docker Engine that accepts `/v1.44` and has Compose v2.** Open: the
+repository has no remote yet (owner's decision, 2026-09-29), so there is no hosted runner to ask.
+Moved from B-01 to B-13.
 
 **H3. A hand-written ApiVersions v0 request is enough to tell a Kafka broker that answers from
 anything else.** Settled by B-06, with the negative control of pointing it at Postgres.
@@ -223,6 +229,5 @@ scope is the list in [backlog.md](../../backlog.md).
 
 ## 4. What happens next
 
-The order and the acceptance criteria are in [backlog.md](../../backlog.md). The first step is B-01:
-one `linuxX64Test` that pings Docker over the socket, on the build box and on `ubuntu-latest`, because
-H1 and H2 decide whether the rest is built on Ktor or on something else.
+The order and the acceptance criteria are in [backlog.md](../../backlog.md). B-01 confirmed the
+transport (H1); the engine calls (B-02, B-03) are built on it.
