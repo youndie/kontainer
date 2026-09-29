@@ -4,6 +4,7 @@ import io.github.youndie.kontainer.docker.DockerEngine
 import io.github.youndie.kontainer.docker.DockerError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -142,6 +143,120 @@ public class Fixture private constructor(
                 delay(RETRY)
             }
         }
+
+    /** Freezes [service]'s container: connections stay open, nothing answers. */
+    public suspend fun pause(service: String) {
+        engine.pause(faultTarget(service))
+    }
+
+    /**
+     * Thaws [service]'s container. Not an error when it is not paused: the engine answers that with
+     * `500`, so the state is asked first (research Consequence 6a).
+     */
+    public suspend fun unpause(service: String) {
+        val id = faultTarget(service)
+        if (engine.inspect(id).paused) engine.unpause(id)
+    }
+
+    /** Stops [service]'s container, killing it after [grace]; connections to its port are refused. */
+    public suspend fun stop(
+        service: String,
+        grace: Duration = 10.seconds,
+    ) {
+        engine.stop(faultTarget(service), grace)
+    }
+
+    /** Starts [service]'s container again, on the same host port (B-05). */
+    public suspend fun start(service: String) {
+        engine.start(faultTarget(service))
+    }
+
+    /** Kills [service]'s container. */
+    public suspend fun kill(service: String) {
+        engine.kill(faultTarget(service))
+    }
+
+    /**
+     * Runs [block] with [service] paused, then unpauses it — also when [block] throws — and returns only
+     * once the service answers [probe] on [containerPort] again. The exception of [block], if any, reaches
+     * the caller unchanged.
+     *
+     * @throws FixtureError.SharedFixture on a shared fixture, before anything is touched.
+     */
+    public suspend fun <T> paused(
+        service: String,
+        containerPort: Int,
+        probe: Probe,
+        block: suspend () -> T,
+    ): T {
+        pause(service)
+        return restoring(service, containerPort, probe, restore = { unpause(service) }, block)
+    }
+
+    /**
+     * Runs [block] with [service] stopped — its port refuses connections — then starts it on the same port,
+     * also when [block] throws, and returns only once it answers [probe] on [containerPort] again.
+     *
+     * @throws FixtureError.SharedFixture on a shared fixture, before anything is touched.
+     */
+    public suspend fun <T> stopped(
+        service: String,
+        containerPort: Int,
+        probe: Probe,
+        grace: Duration = 10.seconds,
+        block: suspend () -> T,
+    ): T {
+        stop(service, grace)
+        return restoring(service, containerPort, probe, restore = { start(service) }, block)
+    }
+
+    private suspend fun <T> restoring(
+        service: String,
+        containerPort: Int,
+        probe: Probe,
+        restore: suspend () -> Unit,
+        block: suspend () -> T,
+    ): T {
+        val result =
+            try {
+                block()
+            } catch (failure: Throwable) {
+                // Cancellation included, on purpose: a fixture left frozen breaks every test after this one, so
+                // the service is restored first and the cancellation or failure then goes on unchanged, with a
+                // failed restore riding along as suppressed.
+                restoreAndAwait(service, containerPort, probe, restore)?.let(failure::addSuppressed)
+                throw failure
+            }
+        restoreAndAwait(service, containerPort, probe, restore)?.let { throw it }
+        return result
+    }
+
+    /** Restores the service and waits for it, whatever happens around it; returns what went wrong, if anything. */
+    @Suppress(
+        "ktlint:kapkan:cancellation-swallowed",
+        "all of it runs under NonCancellable, and the caller rethrows an outer cancellation after restoring",
+    )
+    private suspend fun restoreAndAwait(
+        service: String,
+        containerPort: Int,
+        probe: Probe,
+        restore: suspend () -> Unit,
+    ): Throwable? =
+        try {
+            withContext(NonCancellable) {
+                restore()
+                awaitReady(service, containerPort, probe)
+            }
+            null
+        } catch (failure: Exception) {
+            failure
+        }
+
+    /** The container a fault may touch: refused on a shared fixture (research D7). */
+    private suspend fun faultTarget(service: String): String {
+        if (!owned) throw FixtureError.SharedFixture(service, project)
+        return containerId(service)
+    }
 
     private suspend fun logTail(id: String): String =
         engine.logs(id, tail = LOG_TAIL).let { (it.stdout + it.stderr).trimEnd() }
