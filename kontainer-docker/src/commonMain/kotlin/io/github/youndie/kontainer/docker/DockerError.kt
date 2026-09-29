@@ -32,7 +32,22 @@ public sealed class DockerError(
         public val required: String,
     ) : DockerError("the Docker Engine speaks API $server, and kontainer needs at least $required")
 
-    /** Any other answer outside 2xx, with the engine's own message. */
+    /** The engine knows no container by [id] (`404`). */
+    public class NoSuchContainer(
+        public val id: String,
+        public val engineMessage: String,
+    ) : DockerError("no container $id: $engineMessage")
+
+    /** The container is not in a state that allows the call (`409`) — a second `pause`, `kill` of a stopped one. */
+    public class Conflict(
+        public val id: String,
+        public val engineMessage: String,
+    ) : DockerError("container $id refused the call: $engineMessage")
+
+    /**
+     * Any other answer outside 2xx, with the engine's own message. Includes `unpause` of a container
+     * that is not paused, which Docker 29.1 answers with `500 … is not paused` rather than `409`.
+     */
     public class EngineError(
         public val status: Int,
         public val engineMessage: String,

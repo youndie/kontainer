@@ -2,15 +2,21 @@ package io.github.youndie.kontainer.docker
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.request.get
+import io.ktor.client.request.request
 import io.ktor.client.request.unixSocket
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /** What the engine says about itself: `GET /version`. */
 public data class EngineVersion(
@@ -24,11 +30,14 @@ public data class EngineVersion(
  *
  * Every versioned request carries [API_VERSION] in its path and nothing is negotiated (research D8):
  * a newer field is then a visible change to this constant rather than a difference between machines.
+ *
+ * No call has a timeout of its own. `stop` waits as long as the grace period it is given, so the
+ * client's per-request limit is off, and a caller that needs a bound puts `withTimeout` around the call.
  */
 public class DockerEngine(
     public val socketPath: String,
 ) : AutoCloseable {
-    private val client = HttpClient(CIO)
+    private val client = HttpClient(CIO) { engine { requestTimeout = 0 } }
 
     /**
      * Asks the engine whether it is there and what it speaks.
@@ -39,11 +48,9 @@ public class DockerEngine(
      * @throws DockerError.EngineError when the engine answers outside 2xx.
      */
     public suspend fun ping(): EngineVersion {
-        socketProblem(socketPath)?.let { throw it }
-        val pong = request("/_ping")
-        val ok = pong.bodyAsText()
-        if (ok != "OK") throw DockerError.EngineError(pong.status.value, "/_ping answered '$ok'")
-        val fields = Json.parseToJsonElement(request("/v$API_VERSION/version").bodyAsText()).jsonObject
+        val pong = send(HttpMethod.Get, "/_ping", versioned = false).bodyAsText()
+        if (pong != "OK") throw DockerError.EngineError(200, "/_ping answered '$pong'")
+        val fields = Json.parseToJsonElement(send(HttpMethod.Get, "/version").bodyAsText()).jsonObject
         val version =
             EngineVersion(
                 version = fields.text("Version"),
@@ -56,17 +63,104 @@ public class DockerEngine(
         return version
     }
 
+    /**
+     * Every container — running or not — that carries all of [labels]. Compose labels its containers
+     * `com.docker.compose.project` and `com.docker.compose.service`, which is how a fixture finds its
+     * own without trusting a container name (kafkakn B-97).
+     */
+    public suspend fun containers(labels: Map<String, String>): List<ContainerSummary> {
+        val filters =
+            buildJsonObject {
+                put("label", JsonArray(labels.map { (key, value) -> JsonPrimitive("$key=$value") }))
+            }
+        val body =
+            send(
+                HttpMethod.Get,
+                "/containers/json",
+                query =
+                    mapOf(
+                        "all" to "true",
+                        "filters" to filters.toString(),
+                    ),
+            )
+        return Json.parseToJsonElement(body.bodyAsText()).jsonArray.map { it.jsonObject.toSummary() }
+    }
+
+    /** @throws DockerError.NoSuchContainer when the engine knows no container by [id]. */
+    public suspend fun inspect(id: String): ContainerDetails =
+        Json
+            .parseToJsonElement(send(HttpMethod.Get, "/containers/$id/json", container = id).bodyAsText())
+            .jsonObject
+            .toDetails()
+
+    /** @throws DockerError.Conflict when the container is already paused or not running. */
+    public suspend fun pause(id: String) {
+        send(HttpMethod.Post, "/containers/$id/pause", container = id)
+    }
+
+    /** @throws DockerError.EngineError `500 … is not paused` when the container is not paused (Docker 29.1). */
+    public suspend fun unpause(id: String) {
+        send(HttpMethod.Post, "/containers/$id/unpause", container = id)
+    }
+
+    /**
+     * Stops the container, killing it after [timeout]. Stopping one that is already stopped succeeds:
+     * the engine answers `304`, and the container is in the state that was asked for.
+     */
+    public suspend fun stop(
+        id: String,
+        timeout: Duration = 10.seconds,
+    ) {
+        send(
+            HttpMethod.Post,
+            "/containers/$id/stop",
+            container = id,
+            query =
+                mapOf("t" to timeout.inWholeSeconds.toString()),
+        )
+    }
+
+    /** Starts the container. Starting one that is running succeeds, as `stop` does (`304`). */
+    public suspend fun start(id: String) {
+        send(HttpMethod.Post, "/containers/$id/start", container = id)
+    }
+
+    /** @throws DockerError.Conflict when the container is not running. */
+    public suspend fun kill(id: String) {
+        send(HttpMethod.Post, "/containers/$id/kill", container = id)
+    }
+
     override fun close() {
         client.close()
     }
 
-    private suspend fun request(path: String): HttpResponse {
+    /**
+     * One request, with the engine's failures mapped. [container] is the id the path names, so that a
+     * `404` or a `409` can say which container it was about.
+     */
+    private suspend fun send(
+        method: HttpMethod,
+        path: String,
+        versioned: Boolean = true,
+        container: String? = null,
+        query: Map<String, String> = emptyMap(),
+    ): HttpResponse {
+        socketProblem(socketPath)?.let { throw it }
         // The host is a placeholder the engine ignores; the socket decides where the request goes.
-        val response = client.get("http://docker$path") { unixSocket(socketPath) }
-        if (!response.status.isSuccess()) {
-            throw DockerError.EngineError(response.status.value, engineMessage(response.bodyAsText()))
+        val response =
+            client.request("http://docker${if (versioned) "/v$API_VERSION" else ""}$path") {
+                this.method = method
+                unixSocket(socketPath)
+                url { query.forEach { (key, value) -> parameters.append(key, value) } }
+            }
+        val status = response.status
+        if (status.isSuccess() || status == HttpStatusCode.NotModified) return response
+        val message = engineMessage(response.bodyAsText())
+        throw when {
+            container != null && status == HttpStatusCode.NotFound -> DockerError.NoSuchContainer(container, message)
+            container != null && status == HttpStatusCode.Conflict -> DockerError.Conflict(container, message)
+            else -> DockerError.EngineError(status.value, message)
         }
-        return response
     }
 
     public companion object {
@@ -111,6 +205,3 @@ internal fun compareApiVersions(
 /** The engine's error body is `{"message": "…"}`; anything else is passed on as it came. */
 private fun engineMessage(body: String): String =
     runCatching { Json.parseToJsonElement(body).jsonObject.text("message") }.getOrDefault(body)
-
-private fun JsonObject.text(key: String): String =
-    this[key]?.jsonPrimitive?.content ?: throw DockerError.EngineError(200, "no '$key' in the engine's answer")
