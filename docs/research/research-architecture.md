@@ -198,6 +198,9 @@ and its log says `Missing required configuration "controller.listener.names"` (m
 Decision: `pause`, `stop` and `kill` refuse on a shared fixture. A fault on the shared broker is the
 reason kafkakn's tests are gated today; allowing it would reproduce the problem inside the library.
 
+**Implemented in B-07,** together with `paused { }` / `stopped { }`, which restore the service and wait for
+its probe also when the block throws or is cancelled.
+
 ### D8. Requests pinned to `/v1.44`
 
 Decision: every request carries the API version in the path, the server's minimum on the build box

@@ -57,6 +57,15 @@ public sealed class FixtureError(
         public val logTail: String,
     ) : FixtureError("service $service is not ready: $lastCause\n--- the end of its log ---\n$logTail")
 
+    /**
+     * A fault was asked of a shared fixture. Faults break the service for everyone using it, which is why
+     * kafkakn's fault tests are gated today (research D7); they belong on an owned fixture.
+     */
+    public class SharedFixture(
+        public val service: String,
+        public val project: String,
+    ) : FixtureError("fixture $project is shared: faults on $service are refused; use Fixture.owned")
+
     /** The compose files have no service by this name, or its container is gone. */
     public class NoSuchService(
         public val service: String,

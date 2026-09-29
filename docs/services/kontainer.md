@@ -1,6 +1,6 @@
 ---
 id: kontainer
-title: kontainer — fixtures and readiness
+title: kontainer — fixtures, readiness and faults
 type: service
 module: kontainer
 tech_stack: [Kotlin Multiplatform, Kotlin/Native linuxX64, kotlinx.coroutines, ktor-network, docker compose CLI v2]
@@ -9,15 +9,15 @@ depends_on: [kontainer-docker, docker compose CLI v2]
 publishes: [io.github.youndie.kontainer:kontainer (reposilite, B-10)]
 ---
 
-# kontainer — fixtures and readiness
+# kontainer — fixtures, readiness and faults
 
 ## 1. Responsibility
 
 What a test uses: a `Fixture` brought up from compose files under a project name kontainer chooses, host
-ports kontainer chooses and checks, and readiness by protocol.
+ports kontainer chooses and checks, readiness by protocol, and faults — pause, stop, kill — on a fixture the
+test owns.
 
-Not built yet: faults on an owned fixture (`paused { }`, `stopped { }`, B-07) and removing fixtures left by
-dead processes (B-08).
+Not built yet: removing fixtures left by dead processes (B-08).
 
 It deliberately does **not**: describe containers in Kotlin (after v1); implement compose itself (it runs
 the CLI); generate a consumer's certificates or users; inject network faults; run on anything but
@@ -28,7 +28,7 @@ the CLI); generate a consumer's certificates or users; inject network faults; ru
 The public Kotlin API. Failures are one sealed type, `FixtureError`: `ComposeFailed(command, exitCode,
 output)`, `ForeignContainer(containerName, project)`, `PortMismatch(service, containerPort, chosen,
 published)`, `PortNotPublished(service, containerPort)`, `NotReady(service, lastCause, logTail)`,
-`NoSuchService(service, project)`; failures of the engine arrive as `DockerError` from
+`SharedFixture(service, project)`, `NoSuchService(service, project)`; failures of the engine arrive as `DockerError` from
 [kontainer-docker](kontainer-docker.md), unchanged.
 
 | Call | Returns | Failures |
@@ -39,6 +39,9 @@ published)`, `PortNotPublished(service, containerPort)`, `NotReady(service, last
 | `fixture.containerId(service)` | the id of the service's container, running or not | `NoSuchService` |
 | `fixture.port(service, containerPort)` | the host port chosen before `up` and checked after it | `PortNotPublished` when not asked for |
 | `fixture.awaitReady(service, containerPort, probe, timeout = 60 s, attempt = 2 s)` | — | `NotReady` |
+| `fixture.pause/stop(service, grace)/start/kill(service)` | — | `SharedFixture`; `Conflict` from the engine (a second pause) |
+| `fixture.unpause(service)` | — (not an error when the service is not paused) | `SharedFixture` |
+| `fixture.paused(service, containerPort, probe) { … }` / `fixture.stopped(service, containerPort, probe, grace) { … }` | the block's result, once the service is restored and answers `probe` again | the block's own exception, unchanged, with a failed restore as suppressed; `SharedFixture`; `NotReady` after it |
 | `Probe.kafka()`, `Probe.postgres(user)`, `Probe.http(path, status)`, `Probe.custom { host, port -> }` | a probe | — |
 | `portVariable(service, containerPort)` | `KONTAINER_PORT_<SERVICE>_<PORT>` | — |
 
@@ -68,8 +71,13 @@ What a consumer's compose file must do: publish each port kontainer is asked abo
   started and published nothing, or something else, fails before any probe (research D5, Risk 2). A lost
   race for the port retries `up` up to three times; that path has no test (research Risk 1).
 - **Readiness asks the protocol, from the host** (research D6), each attempt bounded, on real time.
-- **Owned and shared fixtures differ in their name**: `kontainer-<pid>-<n>` against a fixed one. Faults will
-  be refused on a shared one (B-07).
+- **Owned and shared fixtures differ in their name and in one rule**: `kontainer-<pid>-<n>` against a fixed
+  one, and faults are refused on a shared fixture before anything is touched (research D7, B-07).
+- **A scoped fault always restores.** `paused { }` and `stopped { }` unpause or start the service and wait for
+  its probe whatever the block did — an exception or a cancellation — under `NonCancellable`, and only then let
+  the block's own exception go on, unchanged (B-07). A fixture left frozen would break every test after it.
+- **Unpause decides by state:** the engine answers an unpause of a running container with `500`, so the
+  container is inspected first (research Consequence 6a).
 - **A fixture can live as long as a test class**: `@BeforeClass`/`@AfterClass` on a companion object run on
   native (research H4, refuted by B-04).
 
