@@ -63,6 +63,8 @@ A library that asks for a second description would be one more thing to keep in 
 | Docker Engine 29.1.3, API 1.52, minimum API 1.44; Docker Compose 2.40.3 | `docker version`, `docker compose version` |
 | The socket is `root:docker 0660`; the build user is in the `docker` group | `ls -l /var/run/docker.sock`, `id -nG` |
 | `docker compose -p <name> up -d` labels containers `com.docker.compose.project=<name>` and `…service=<service>`; `GET /v1.44/containers/json?filters={"label":[…]}` finds them | curl, project `stendprobe` |
+| `-p <name>` wins over a top-level `name:` in the file; labels in an extra `-f` override file are merged onto every container; `docker compose -p <name> down -v` removes a project's containers, networks and volumes with no file given | compose 2.40.3, B-04, 2026-09-29 |
+| A service whose `container_name` is taken by another project's container fails `up` with the engine's `Conflict. The container name "/…" is already in use` — compose removes nothing | compose 2.40.3, B-04 |
 | `docker compose config --format json` prints the normalised model with variables substituted | `PG_PORT=55432 docker compose -p stendprobe config --format json` |
 | `exec/start` with `Detach:false, Tty:false` and no `Upgrade` header returns the output as the body, framed: `[stream, 0, 0, 0, size as big-endian u32]`, stdout = 1, stderr = 2 | `sh -c 'echo out; echo err >&2; exit 3'` → frames `1 0 0 0 0 0 0 4 "out\n"`, `2 0 0 0 0 0 0 4 "err\n"` |
 | The exit code of an exec is read afterwards from `GET /exec/{id}/json` | same run: `ExitCode 3`, `Running false` |
@@ -233,8 +235,10 @@ Moved from B-01 to B-13.
 **H3. A hand-written ApiVersions v0 request is enough to tell a Kafka broker that answers from
 anything else.** Settled by B-06, with the negative control of pointing it at Postgres.
 
-**H4. kotlin.test on native has no class-level lifecycle hooks**, so a fixture lives from its first
-use to an explicit `down` or to the reaper. Settled while writing B-04.
+**H4 — refuted by B-04.** `kotlin.test.BeforeClass` and `AfterClass` on a companion object compile and
+run on `linuxX64` (Kotlin 2.4.20): a probe printed its before-class and after-class lines around two
+tests. A fixture can live as long as a test class; the reaper (B-08) is for processes that are killed,
+not for the ones that end normally.
 
 **H5 — refuted by B-03.** The exec output does not arrive as a plain body through Ktor; see the
 correction under Consequence 6.
