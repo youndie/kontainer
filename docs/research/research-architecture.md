@@ -113,6 +113,30 @@ logs are chunked and stay on the client.
 | Left to itself, CIO reports a missing socket as `kotlinx.io.IOException: Failed to connect to UnixSocketAddress(/nonexistent.sock)` — the path, not the reason | B-01, the same test with the socket preflight disabled, 2026-09-29 |
 | kmp-docker-client (Ktor, JVM + linuxX64 + Node) has exec, logs, pause and port lookup; no readiness, no macOS native; marked WIP | [LimeBeck/kmp-docker-client README](https://github.com/LimeBeck/kmp-docker-client), read 2026-09-29 |
 
+### 1.4 What an owned Kafka broker costs (B-09)
+
+Five cold starts of an owned `apache/kafka:4.3.1` fixture (a new compose project each time, the image already
+pulled, single KRaft node as in kafkakn), on the Linux build box on 2026-09-30, measured by `KafkaStartTest`
+from before `up` to the first ApiVersions answer, through the published port. The box was shared: load
+average 8–10 on 20 cores.
+
+| Run | `up` returned | Kafka answered |
+|---|---|---|
+| 1 | 1 876 ms | 5 341 ms |
+| 2 | 1 837 ms | 5 058 ms |
+| 3 | 1 804 ms | 5 014 ms |
+| 4 | 1 852 ms | 5 071 ms |
+| 5 | 1 825 ms | 5 047 ms |
+
+Median 5.06 s to ready, spread 5.01–5.34 s. Two limits on these numbers: the probe retries every 200 ms, so
+readiness is resolved to about that; and this box's monotonic clock was once measured about 10 % slow, so the
+wall-clock figures may be up to that much higher. Neither changes the decision below. The same five runs on a
+hosted runner wait for the repository to get a remote (B-13).
+
+**Consequence 8.** A broker per fault test costs about five seconds. kafkakn's seven fault tests would add
+about 35 s to a suite that already runs for minutes, so **each fault test gets its own broker**; one fixture per
+class, restored between tests, is not needed (Risk 4 closed).
+
 **Consequence 7.** The transport exists in the version already pinned, and B-01 confirmed it on
 `linuxX64` (H1). A missing socket still has to be told from a forbidden one before the request, since
 the client's error names only the path.
@@ -232,9 +256,8 @@ naming the service and the port.
 hook. Mitigation: every container carries `kontainer.owner=<pid>@<host>`; the next `up` on that host
 removes projects whose owner is dead, and says which (B-08).
 
-**Risk 4. Starting a broker per fault test is too slow for CI.** Unmeasured. Mitigation: B-09 times
-five starts on the box and in CI before kafkakn adopts it; the fallback is one owned fixture per test
-class, restored to ready between tests.
+**Risk 4 — closed by B-09.** A broker per fault test costs about 5 s on the build box (§1.4), so each fault
+test gets its own. The hosted-runner figure is still to come (B-13).
 
 **H1 — confirmed by B-01** (§1.3): the CIO client speaks HTTP over a unix socket on `linuxX64`.
 
