@@ -72,9 +72,7 @@ private suspend fun kafkaApiVersions(
         val size = answer.int()
         if (size !in 6..MAX_KAFKA_RESPONSE) throw ProbeFailure("the answer is not Kafka: a response size of $size")
         val echoed = answer.int()
-        if (echoed !=
-            correlation
-        ) {
+        if (echoed != correlation) {
             throw ProbeFailure("the answer is not Kafka: correlation id $echoed, not $correlation")
         }
         val error = answer.short()
