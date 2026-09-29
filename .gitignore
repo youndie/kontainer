@@ -1,0 +1,12 @@
+# Gradle, from B-01 onwards.
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.kotlin/
+
+# Kotlin/Native and IDE.
+.konan/
+.idea/
+*.iml
+
+.DS_Store
