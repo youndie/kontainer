@@ -1,7 +1,7 @@
 ---
 id: B-08
 title: "Fixtures left by a dead test process are removed on the next up"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-2-fixture
