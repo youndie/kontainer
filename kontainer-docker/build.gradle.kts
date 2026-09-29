@@ -13,6 +13,9 @@ kotlin {
         commonMain.dependencies {
             api(libs.ktor.client.core)
             implementation(libs.ktor.client.cio)
+            // One call reads the unix socket itself (exec output: RawResponse.kt). Already on the classpath
+            // through the CIO engine; named because this module uses it directly.
+            implementation(libs.ktor.network)
             implementation(wip.kotlinx.serialization.json)
         }
         commonTest.dependencies {

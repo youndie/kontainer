@@ -3,19 +3,29 @@ package io.github.youndie.kontainer.docker
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.request
+import io.ktor.client.request.setBody
 import io.ktor.client.request.unixSocket
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /** What the engine says about itself: `GET /version`. */
@@ -130,8 +140,93 @@ public class DockerEngine(
         send(HttpMethod.Post, "/containers/$id/kill", container = id)
     }
 
+    /**
+     * Runs [command] inside the container and waits for it to end.
+     *
+     * No TTY: the two streams stay apart. The output is read whole, so a command that prints without
+     * end never returns; bound it with `withTimeout`.
+     *
+     * @throws DockerError.NoSuchContainer when the engine knows no container by [id].
+     * @throws DockerError.Conflict when the container is not running.
+     */
+    public suspend fun exec(
+        id: String,
+        command: List<String>,
+    ): ExecResult {
+        val create =
+            buildJsonObject {
+                put("AttachStdout", true)
+                put("AttachStderr", true)
+                put("Cmd", JsonArray(command.map(::JsonPrimitive)))
+            }
+        val created = send(HttpMethod.Post, "/containers/$id/exec", container = id, body = create.toString())
+        val execId = Json.parseToJsonElement(created.bodyAsText()).jsonObject.text("Id")
+        val start =
+            buildJsonObject {
+                put("Detach", false)
+                put("Tty", false)
+            }
+        socketProblem(socketPath)?.let { throw it }
+        // Read off the socket rather than through the client: see RawResponse.kt for why.
+        val answer = rawRequest(socketPath, "POST", "/v$API_VERSION/exec/$execId/start", start.toString())
+        if (answer.status !in 200..299) {
+            val message = engineMessage(answer.body.decodeToString())
+            throw when (answer.status) {
+                404 -> DockerError.NoSuchContainer(id, message)
+                409 -> DockerError.Conflict(id, message)
+                else -> DockerError.EngineError(answer.status, message)
+            }
+        }
+        // Framed although the engine labels it `application/vnd.docker.raw-stream` (Docker 29.1): the
+        // label is not what decides here, the absence of a TTY is.
+        val (stdout, stderr) = demultiplex(answer.body)
+        return ExecResult(
+            exitCode = exitCodeOf(execId),
+            stdout = stdout.decodeToString(),
+            stderr = stderr.decodeToString(),
+        )
+    }
+
+    /**
+     * The container's log so far, or its last [tail] lines.
+     *
+     * @throws DockerError.NoSuchContainer when the engine knows no container by [id].
+     */
+    public suspend fun logs(
+        id: String,
+        tail: Int? = null,
+    ): ContainerLogs {
+        val response =
+            send(
+                HttpMethod.Get,
+                "/containers/$id/logs",
+                container = id,
+                query = mapOf("stdout" to "1", "stderr" to "1", "tail" to (tail?.toString() ?: "all")),
+            )
+        val body = response.bodyAsBytes()
+        // Here the label does decide: a container started with a TTY writes one unframed stream.
+        if (response.contentType()?.match(MULTIPLEXED) != true) return ContainerLogs(body.decodeToString(), "")
+        val (stdout, stderr) = demultiplex(body)
+        return ContainerLogs(stdout.decodeToString(), stderr.decodeToString())
+    }
+
     override fun close() {
         client.close()
+    }
+
+    /**
+     * The exit code of a finished exec. The stream ends when the command does, and the engine can
+     * still report it running for a moment after; it is asked again until it says otherwise.
+     */
+    private suspend fun exitCodeOf(execId: String): Int {
+        while (true) {
+            val state = Json.parseToJsonElement(send(HttpMethod.Get, "/exec/$execId/json").bodyAsText()).jsonObject
+            if (state["Running"]?.jsonPrimitive?.booleanOrNull != true) {
+                return state["ExitCode"]?.jsonPrimitive?.intOrNull
+                    ?: throw DockerError.EngineError(200, "exec $execId ended with no exit code")
+            }
+            delay(10.milliseconds)
+        }
     }
 
     /**
@@ -144,6 +239,7 @@ public class DockerEngine(
         versioned: Boolean = true,
         container: String? = null,
         query: Map<String, String> = emptyMap(),
+        body: String? = null,
     ): HttpResponse {
         socketProblem(socketPath)?.let { throw it }
         // The host is a placeholder the engine ignores; the socket decides where the request goes.
@@ -152,6 +248,10 @@ public class DockerEngine(
                 this.method = method
                 unixSocket(socketPath)
                 url { query.forEach { (key, value) -> parameters.append(key, value) } }
+                if (body != null) {
+                    contentType(ContentType.Application.Json)
+                    setBody(body)
+                }
             }
         val status = response.status
         if (status.isSuccess() || status == HttpStatusCode.NotModified) return response
@@ -166,6 +266,8 @@ public class DockerEngine(
     public companion object {
         /** The API version every request is pinned to: the minimum the build box's engine accepts. */
         public const val API_VERSION: String = "1.44"
+
+        private val MULTIPLEXED = ContentType("application", "vnd.docker.multiplexed-stream")
 
         /** Where the engine listens when `DOCKER_HOST` is not set. */
         public const val DEFAULT_SOCKET: String = "/var/run/docker.sock"
