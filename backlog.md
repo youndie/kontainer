@@ -50,7 +50,7 @@ hypothesis was confirmed or refuted.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-09](docs/backlog/B-09-kafka-start-time.md) `[ ]` | Measure how long an owned Kafka broker takes to become ready | P1 | S | B-06 |
+| [B-09](docs/backlog/B-09-kafka-start-time.md) `[~]` | Measure how long an owned Kafka broker takes to become ready | P1 | S | B-06 |
 | [B-10](docs/backlog/B-10-publish-to-reposilite.md) `[ ]` | Publish kontainer-docker and kontainer to reposilite | P1 | S | B-07 |
 | [B-11](docs/backlog/B-11-kafkakn-fault-tests-in-ci.md) `[ ]` | kafkakn's seven fault tests run in CI on their own broker | P1 | M | B-09, B-10 |
 | [B-08](docs/backlog/B-08-reap-abandoned-fixtures.md) `[ ]` | Fixtures left by a dead test process are removed on the next up | P2 | S | B-04 |

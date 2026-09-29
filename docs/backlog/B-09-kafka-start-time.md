@@ -1,7 +1,7 @@
 ---
 id: B-09
 title: "Measure how long an owned Kafka broker takes to become ready"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-2-fixture
