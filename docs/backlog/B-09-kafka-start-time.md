@@ -29,6 +29,7 @@ Feature: `feature-fault-injection` (drafted in the open documentation pull reque
   research §1.4.
 - **Decision:** a broker per fault test (research Consequence 8). kafkakn's seven fault tests add about 35 s.
 - **`KafkaStartTest` stays in the suite** as a regression guard (ready within 60 s) that also prints the figure
-  each run; the bound is far above the measurement on purpose.
+  each run; the bound is far above the measurement on purpose. It can go red: with the bound at 1 s the test
+  failed (control run, reverted).
 - **Not done here:** the same five runs on `ubuntu-latest`. The repository has no remote (owner's decision), so
   that half joins B-13.
