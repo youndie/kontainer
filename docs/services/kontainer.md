@@ -17,8 +17,6 @@ What a test uses: a `Fixture` brought up from compose files under a project name
 ports kontainer chooses and checks, readiness by protocol, and faults — pause, stop, kill — on a fixture the
 test owns.
 
-Not built yet: removing fixtures left by dead processes (B-08).
-
 It deliberately does **not**: describe containers in Kotlin (after v1); implement compose itself (it runs
 the CLI); generate a consumer's certificates or users; inject network faults; run on anything but
 `linuxX64` in v1.
@@ -36,6 +34,7 @@ published)`, `PortNotPublished(service, containerPort)`, `NotReady(service, last
 | `Fixture.owned(composeFiles, environment, ports)` / `Fixture.shared(project, composeFiles, environment, ports)` | a fixture, not yet up; `ports` is service → container ports whose host port kontainer chooses | — |
 | `fixture.up()` | — | `ComposeFailed`, `ForeignContainer`, `PortMismatch`, `PortNotPublished`, `NotReady` (a container that already exited) |
 | `fixture.down()` | — (containers, networks and volumes removed) | `ComposeFailed` |
+| `fixture.reaped` | the owned projects of dead processes the last `up` removed (B-08) | — |
 | `fixture.containerId(service)` | the id of the service's container, running or not | `NoSuchService` |
 | `fixture.port(service, containerPort)` | the host port chosen before `up` and checked after it | `PortNotPublished` when not asked for |
 | `fixture.awaitReady(service, containerPort, probe, timeout = 60 s, attempt = 2 s)` | — | `NotReady` |
@@ -71,6 +70,8 @@ What a consumer's compose file must do: publish each port kontainer is asked abo
   started and published nothing, or something else, fails before any probe (research D5, Risk 2). A lost
   race for the port retries `up` up to three times; that path has no test (research Risk 1).
 - **Readiness asks the protocol, from the host** (research D6), each attempt bounded, on real time.
+- **Abandoned fixtures are removed by the next `up`** on the same host: owned projects whose
+  `kontainer.owner` names this host and a pid `kill(pid, 0)` says is gone (research Risk 3, B-08).
 - **Owned and shared fixtures differ in their name and in one rule**: `kontainer-<pid>-<n>` against a fixed
   one, and faults are refused on a shared fixture before anything is touched (research D7, B-07).
 - **A scoped fault always restores.** `paused { }` and `stopped { }` unpause or start the service and wait for

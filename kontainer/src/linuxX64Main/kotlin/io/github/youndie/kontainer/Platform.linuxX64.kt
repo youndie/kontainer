@@ -13,9 +13,11 @@ import kotlinx.cinterop.sizeOf
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.value
 import platform.posix.AF_INET
+import platform.posix.EPERM
 import platform.posix.SOCK_STREAM
 import platform.posix.bind
 import platform.posix.close
+import platform.posix.errno
 import platform.posix.fclose
 import platform.posix.fgets
 import platform.posix.fopen
@@ -23,6 +25,7 @@ import platform.posix.fputs
 import platform.posix.gethostname
 import platform.posix.getpid
 import platform.posix.getsockname
+import platform.posix.kill
 import platform.posix.mkdtemp
 import platform.posix.pclose
 import platform.posix.popen
@@ -100,3 +103,7 @@ internal actual fun freeLoopbackPort(): Int =
             close(socket)
         }
     }
+
+// Signal 0 asks the kernel whether the process exists without sending anything; EPERM means it exists
+// and belongs to someone else.
+internal actual fun processAlive(pid: Int): Boolean = kill(pid, 0) == 0 || errno == EPERM

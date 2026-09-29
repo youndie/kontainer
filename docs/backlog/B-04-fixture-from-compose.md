@@ -5,6 +5,7 @@ status: done
 priority: P1
 size: M
 stage: stage-2-fixture
+epic: feature-compose-fixture
 blocked_by: [B-02]
 ---
 

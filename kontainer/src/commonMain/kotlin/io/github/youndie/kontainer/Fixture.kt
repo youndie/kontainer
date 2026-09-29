@@ -41,6 +41,13 @@ public class Fixture private constructor(
     private val engine: DockerEngine,
 ) {
     private var overrideDirectory: String? = null
+
+    /**
+     * The projects the last [up] removed because their owner process is gone: owned fixtures of this host
+     * that a killed test left behind. Each is also printed.
+     */
+    public var reaped: List<String> = emptyList()
+        private set
     private var chosenPorts: Map<Pair<String, Int>, Int> = emptyMap()
 
     /**
@@ -50,6 +57,7 @@ public class Fixture private constructor(
      * @throws FixtureError.ComposeFailed when compose itself fails.
      */
     public suspend fun up() {
+        reaped = reapAbandoned()
         val services = services()
         for ((_, containerName) in services) {
             if (containerName == null) continue
@@ -318,6 +326,29 @@ public class Fixture private constructor(
             .singleOrNull()
             ?.id ?: throw FixtureError.NoSuchService(service, project)
 
+    /**
+     * Removes owned fixtures of this host whose owner process no longer exists (research Risk 3). Shared
+     * fixtures stay: they are meant to outlive the run that made them. Another host's are not ours to judge.
+     */
+    private suspend fun reapAbandoned(): List<String> {
+        val here = hostName()
+        val me = processId()
+        val abandoned =
+            engine
+                .containers(mapOf(KIND_LABEL to "owned"))
+                .mapNotNull { container ->
+                    val project = container.labels[PROJECT_LABEL] ?: return@mapNotNull null
+                    val owner = container.labels[OWNER_LABEL]?.split('@', limit = 2) ?: return@mapNotNull null
+                    val pid = owner.getOrNull(0)?.toIntOrNull() ?: return@mapNotNull null
+                    project.takeIf { owner.getOrNull(1) == here && pid != me && !processAlive(pid) }
+                }.distinct()
+        for (project in abandoned) {
+            compose(emptyList(), listOf("down", "-v", "--remove-orphans"), project = project)
+            println("kontainer: removed the abandoned fixture $project, whose owner process is gone")
+        }
+        return abandoned
+    }
+
     /** Service name → its `container_name`, if it sets one, from compose's own normalised model. */
     private fun services(): Map<String, String?> {
         // With placeholder ports: a file that publishes `${KONTAINER_PORT_…}` does not parse without them.
@@ -355,6 +386,7 @@ public class Fixture private constructor(
         files: List<String>,
         arguments: List<String>,
         ports: Map<String, String> = emptyMap(),
+        project: String = this.project,
     ): String {
         val command = listOf("docker", "compose", "-p", project) + files.flatMap { listOf("-f", it) } + arguments
         val result = runCommand(command, environment + ports)

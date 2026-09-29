@@ -28,3 +28,6 @@ internal expect fun removeDirectory(path: String)
 
 /** A TCP port on the loopback interface that nothing is bound to at the moment of asking. */
 internal expect fun freeLoopbackPort(): Int
+
+/** Whether a process with [pid] exists on this host (whether or not this one may signal it). */
+internal expect fun processAlive(pid: Int): Boolean

@@ -252,9 +252,10 @@ list, and a probe answered by somebody else. Mitigation (B-05): the post-`up` po
 fixture before any probe runs — `PortNotPublished` for nothing, `PortMismatch` for another port, each
 naming the service and the port.
 
-**Risk 3. A killed test process leaves its fixture running.** A native test has no reliable shutdown
-hook. Mitigation: every container carries `kontainer.owner=<pid>@<host>`; the next `up` on that host
-removes projects whose owner is dead, and says which (B-08).
+**Risk 3 — mitigated by B-08.** A killed test process leaves its fixture running, and a native test has no
+reliable shutdown hook. Every container carries `kontainer.owner=<pid>@<host>`; the next `up` on that host
+removes owned projects whose owner is dead (`kill(pid, 0)`), prints which and lists them in
+`fixture.reaped`. Shared fixtures, other hosts' and live owners' stay.
 
 **Risk 4 — closed by B-09.** A broker per fault test costs about 5 s on the build box (§1.4), so each fault
 test gets its own. The hosted-runner figure is still to come (B-13).

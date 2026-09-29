@@ -3,10 +3,10 @@
 Containers for Kotlin/Native tests: fixtures from compose files, ports kontainer chooses, readiness by
 protocol, and faults in the middle of a test. v1 is `linuxX64` only; the JVM comes later.
 
-**State (2026-09-30): B-01…B-07 and B-09 done** — `kontainer-docker` is a working Docker Engine client
-on `linuxX64`; the `kontainer` module brings compose fixtures up and down on host ports it chooses, waits for
-readiness by protocol, and pauses or stops a service mid-test, restoring it after. An owned Kafka broker is
-ready in about 5 s on the build box, so each fault test gets its own. The research and the backlog are on `main`; the feature and
+**State (2026-09-30): B-01…B-09 done, B-10 a question** — `kontainer-docker` is a working Docker Engine
+client on `linuxX64`; the `kontainer` module brings compose fixtures up and down on host ports it chooses,
+removes those of dead processes, waits for readiness by protocol, and pauses or stops a service mid-test. An
+owned Kafka broker is ready in about 5 s. Publishing (B-10) waits for the owner, and B-11/B-12 with it. The research and the backlog are on `main`; the feature and
 module documents are drafted on the branch `docs/v1-layers` and become `active` on `main` as the code
 lands. This paragraph is dated so that its age is visible; `backlog.md` is what cannot go stale.
 
