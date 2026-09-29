@@ -50,7 +50,7 @@ hypothesis was confirmed or refuted.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-10](docs/backlog/B-10-publish-to-reposilite.md) `[ ]` | Publish kontainer-docker and kontainer to reposilite | P1 | S | B-07 |
+| [B-10](docs/backlog/B-10-publish-to-reposilite.md) `[?]` | Publish kontainer-docker and kontainer to reposilite | P1 | S | B-07 |
 | [B-11](docs/backlog/B-11-kafkakn-fault-tests-in-ci.md) `[ ]` | kafkakn's seven fault tests run in CI on their own broker | P1 | M | B-09, B-10 |
 | [B-08](docs/backlog/B-08-reap-abandoned-fixtures.md) `[ ]` | Fixtures left by a dead test process are removed on the next up | P2 | S | B-04 |
 | [B-12](docs/backlog/B-12-s3kn-brings-its-own-minio.md) `[ ]` | s3kn's linuxX64Test brings up its own MinIO | P2 | S | B-10 |
