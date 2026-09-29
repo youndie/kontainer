@@ -50,7 +50,7 @@ hypothesis was confirmed or refuted.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-06](docs/backlog/B-06-readiness-by-protocol.md) `[ ]` | Readiness is a protocol answer from the host through the published port | P1 | M | B-02 |
+| [B-06](docs/backlog/B-06-readiness-by-protocol.md) `[~]` | Readiness is a protocol answer from the host through the published port | P1 | M | B-02 |
 | [B-07](docs/backlog/B-07-scoped-faults.md) `[ ]` | paused {} and stopped {} restore the service, and refuse on a shared fixture | P1 | S | B-05, B-06 |
 | [B-09](docs/backlog/B-09-kafka-start-time.md) `[ ]` | Measure how long an owned Kafka broker takes to become ready | P1 | S | B-06 |
 | [B-10](docs/backlog/B-10-publish-to-reposilite.md) `[ ]` | Publish kontainer-docker and kontainer to reposilite | P1 | S | B-07 |
