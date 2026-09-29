@@ -52,3 +52,11 @@ by a person.
 ### Research (1)
 
 - [x] [research-architecture](research/research-architecture.md) — how native tests get containers today, what the Docker Engine does under pause and stop, decisions and risks
+
+### Services (1)
+
+- [x] [kontainer-docker](services/kontainer-docker.md) — the Docker Engine client: containers, pause and stop, exec, logs, typed errors
+
+### Features (1)
+
+- [x] [feature-engine-client](features/feature-engine-client.md) — talking to the engine over the socket, with answers a test can act on

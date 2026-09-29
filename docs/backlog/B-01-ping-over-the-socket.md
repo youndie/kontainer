@@ -5,6 +5,7 @@ status: done
 priority: P1
 size: S
 stage: stage-1-engine
+epic: feature-engine-client
 ---
 
 # B-01 — A linuxX64 test pings Docker over the unix socket
