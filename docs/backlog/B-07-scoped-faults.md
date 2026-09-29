@@ -1,7 +1,7 @@
 ---
 id: B-07
 title: "paused {} and stopped {} restore the service, and refuse on a shared fixture"
-status: open
+status: wip
 priority: P1
 size: S
 stage: stage-2-fixture
