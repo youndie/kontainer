@@ -47,6 +47,16 @@ public sealed class FixtureError(
         public val containerPort: Int,
     ) : FixtureError("service $service does not publish $containerPort; its compose file has to publish it")
 
+    /**
+     * The service did not answer its protocol in time, or its container is not running. [lastCause] is
+     * why the last probe failed; [logTail] is the end of the service's log, where the reason usually is.
+     */
+    public class NotReady(
+        public val service: String,
+        public val lastCause: String,
+        public val logTail: String,
+    ) : FixtureError("service $service is not ready: $lastCause\n--- the end of its log ---\n$logTail")
+
     /** The compose files have no service by this name, or its container is gone. */
     public class NoSuchService(
         public val service: String,

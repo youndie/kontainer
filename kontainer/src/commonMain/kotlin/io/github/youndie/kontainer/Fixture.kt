@@ -2,6 +2,12 @@ package io.github.youndie.kontainer
 
 import io.github.youndie.kontainer.docker.DockerEngine
 import io.github.youndie.kontainer.docker.DockerError
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -9,6 +15,10 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.incrementAndFetch
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 /**
  * Containers a test runs against, described by compose files the repository already has (research D4).
@@ -84,13 +94,74 @@ public class Fixture private constructor(
         containerPort: Int,
     ): Int = chosenPorts[service to containerPort] ?: throw FixtureError.PortNotPublished(service, containerPort)
 
+    /**
+     * Returns once [service] answers [probe] through the host port of [containerPort] — not when compose
+     * says it started, and not when a TCP connect succeeds (research D6).
+     *
+     * Runs on real time even inside `runTest`. Each attempt gets [attempt] to answer; a container that
+     * is not running fails at once, since nothing will answer.
+     *
+     * @throws FixtureError.NotReady with the last cause and the end of the service's log.
+     */
+    public suspend fun awaitReady(
+        service: String,
+        containerPort: Int,
+        probe: Probe,
+        timeout: Duration = 60.seconds,
+        attempt: Duration = 2.seconds,
+    ): Unit =
+        withContext(Dispatchers.Default) {
+            val port = port(service, containerPort)
+            val started = TimeSource.Monotonic.markNow()
+            var lastCause = "not asked yet"
+            while (true) {
+                val id = containerId(service)
+                val details = engine.inspect(id)
+                if (!details.running) {
+                    throw FixtureError.NotReady(
+                        service,
+                        "its container is ${details.status} (exit code ${details.exitCode})",
+                        logTail(id),
+                    )
+                }
+                try {
+                    withTimeout(attempt) { probe.check(LOOPBACK, port) }
+                    return@withContext
+                } catch (_: TimeoutCancellationException) {
+                    lastCause = "no answer on $LOOPBACK:$port within $attempt"
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    lastCause = failure.message ?: failure::class.simpleName.orEmpty()
+                }
+                if (started.elapsedNow() >=
+                    timeout
+                ) {
+                    throw FixtureError.NotReady(service, "$lastCause (gave up after $timeout)", logTail(id))
+                }
+                delay(RETRY)
+            }
+        }
+
+    private suspend fun logTail(id: String): String =
+        engine.logs(id, tail = LOG_TAIL).let { (it.stdout + it.stderr).trimEnd() }
+
     /** Every chosen port against what the container really publishes, before anything is asked of it. */
     private suspend fun checkPublishedPorts() {
         for ((key, chosen) in chosenPorts) {
             val (service, containerPort) = key
+            val id = containerId(service)
+            val details = engine.inspect(id)
+            // A container that has already exited publishes nothing; that is its failure, not the file's.
+            if (!details.running) {
+                throw FixtureError.NotReady(
+                    service,
+                    "its container is ${details.status} (exit code ${details.exitCode})",
+                    logTail(id),
+                )
+            }
             val published =
-                engine
-                    .inspect(containerId(service))
+                details
                     .ports
                     .filter { it.containerPort == containerPort }
                     .map { it.hostPort }
@@ -214,6 +285,9 @@ public class Fixture private constructor(
         ): Fixture = Fixture(ownedProjectName(), owned = true, composeFiles, environment, ports, engine)
 
         private const val PORT_ATTEMPTS = 3
+        private const val LOOPBACK = "127.0.0.1"
+        private const val LOG_TAIL = 30
+        private val RETRY = 200.milliseconds
 
         @OptIn(ExperimentalAtomicApi::class)
         private val counter = AtomicInt(0)

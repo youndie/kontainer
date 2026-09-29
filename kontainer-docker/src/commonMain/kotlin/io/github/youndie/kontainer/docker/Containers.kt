@@ -35,6 +35,8 @@ public data class ContainerDetails(
     val status: String,
     val running: Boolean,
     val paused: Boolean,
+    /** The exit code of the last run; meaningful once [running] is false. */
+    val exitCode: Int?,
     val labels: Map<String, String>,
     /** Empty while the container is not running: the engine publishes ports only for a live one. */
     val ports: List<PublishedPort>,
@@ -69,6 +71,7 @@ internal fun JsonObject.toDetails(): ContainerDetails {
         status = state.text("Status"),
         running = state["Running"]?.jsonPrimitive?.booleanOrNull == true,
         paused = state["Paused"]?.jsonPrimitive?.booleanOrNull == true,
+        exitCode = state["ExitCode"]?.jsonPrimitive?.intOrNull,
         labels = labels(config?.get("Labels")),
         ports =
             published.orEmpty().flatMap { (key, bindings) ->
