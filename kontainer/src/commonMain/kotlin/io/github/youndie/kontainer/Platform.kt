@@ -25,3 +25,6 @@ internal expect fun writeTextFile(
 )
 
 internal expect fun removeDirectory(path: String)
+
+/** A TCP port on the loopback interface that nothing is bound to at the moment of asking. */
+internal expect fun freeLoopbackPort(): Int

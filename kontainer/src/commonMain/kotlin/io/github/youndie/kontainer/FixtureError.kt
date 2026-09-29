@@ -24,6 +24,29 @@ public sealed class FixtureError(
                 ", and it is not this fixture's to touch",
         )
 
+    /**
+     * The service's container publishes [containerPort] on a host port other than the one this fixture
+     * chose — the compose file names a fixed port instead of the variable (research D5).
+     */
+    public class PortMismatch(
+        public val service: String,
+        public val containerPort: Int,
+        public val chosen: Int,
+        public val published: Int,
+    ) : FixtureError(
+            "service $service publishes $containerPort on $published, not on $chosen: publish it as " +
+                "\"127.0.0.1:${'$'}{${portVariable(service, containerPort)}}:$containerPort\"",
+        )
+
+    /**
+     * The service's container does not publish [containerPort] at all. A fixture that started and
+     * published nothing was once answered by another project's service on the same box (research §1.2).
+     */
+    public class PortNotPublished(
+        public val service: String,
+        public val containerPort: Int,
+    ) : FixtureError("service $service does not publish $containerPort; its compose file has to publish it")
+
     /** The compose files have no service by this name, or its container is gone. */
     public class NoSuchService(
         public val service: String,
