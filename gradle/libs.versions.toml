@@ -1,0 +1,13 @@
+[versions]
+# The client engine that speaks HTTP over a unix socket (CIO, since Ktor 3.2). The same release the
+# rest of the portfolio pins; the compiler comes from sborka's `wip` catalog.
+ktor = "3.6.0"
+sborka = "0.4.0.93"
+
+[libraries]
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+
+[plugins]
+sborkaKmp = { id = "io.github.youndie.sborka.kmp", version.ref = "sborka" }
+sborkaLint = { id = "io.github.youndie.sborka.lint", version.ref = "sborka" }
