@@ -67,6 +67,8 @@ A library that asks for a second description would be one more thing to keep in 
 | `exec/start` with `Detach:false, Tty:false` and no `Upgrade` header returns the output as the body, framed: `[stream, 0, 0, 0, size as big-endian u32]`, stdout = 1, stderr = 2 | `sh -c 'echo out; echo err >&2; exit 3'` → frames `1 0 0 0 0 0 0 4 "out\n"`, `2 0 0 0 0 0 0 4 "err\n"` |
 | The exit code of an exec is read afterwards from `GET /exec/{id}/json` | same run: `ExitCode 3`, `Running false` |
 | `POST …/pause` → `204`; a second `pause` → `409`; an unknown container → `404 {"message":"No such container: …"}` | curl |
+| A second `start` of a running container and a second `stop` of a stopped one answer **`304`**; `kill` of a stopped container answers **`409`**; **`unpause` of a container that is not paused answers `500`** `{"message":"Container … is not paused"}`, not `409` | curl, B-02, 2026-09-29 |
+| A stopped container's `NetworkSettings.Ports` is `{}`: the engine reports published ports only for a running one | curl, B-02 |
 | **Paused:** the published port still **accepts** TCP (3 of 3), and the protocol does not answer (`pg_isready` from the host exits 2) | curl + `/dev/tcp` + `docker run --network host postgres:18-alpine pg_isready` |
 | **Stopped:** the published port **refuses** TCP (2 of 2) | same |
 | **An ephemeral host port changes across stop/start**: `127.0.0.1::5432` was 37810, and 37811 after `stop` + `start` | `GET /containers/{id}/json` → `NetworkSettings.Ports["5432/tcp"][0].HostPort`, before and after |
@@ -79,6 +81,11 @@ container is frozen. A probe that stops at `connect()` would report a paused bro
 that stops and starts its service; a fixed one collides silently with anything else on a shared
 machine. The library picks the port, passes it in, and checks afterwards that the container really
 published it.
+
+**Consequence 6a.** The engine's own codes do not line up with "already in that state": `304` for
+stop and start, `409` for pause and kill, `500` for unpause. The client maps `404` and `409` to types
+and treats `304` as success; `500` stays an `EngineError`, so a caller that wants an idempotent unpause
+(kontainer's `paused { }`, B-07) has to decide by the container's state, not by the error.
 
 **Consequence 6.** The API is small and plain. Everything v1 needs is ordinary request/response
 HTTP over the socket, including exec output; nothing needs a hijacked connection.

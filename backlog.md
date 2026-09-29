@@ -46,11 +46,10 @@ hypothesis was confirmed or refuted.
 
 <!-- BEGIN INDEX -->
 
-## Open (12)
+## Open (11)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-02](docs/backlog/B-02-containers-and-typed-errors.md) `[ ]` | Containers by label, inspect, pause, stop, start, kill, with typed errors | P1 | M | B-01 |
 | [B-03](docs/backlog/B-03-exec-and-logs.md) `[ ]` | Exec returns the exit code, stdout and stderr separately; logs are readable | P1 | M | B-01 |
 | [B-04](docs/backlog/B-04-fixture-from-compose.md) `[ ]` | A fixture comes up from a compose file under its own project name | P1 | M | B-02 |
 | [B-05](docs/backlog/B-05-ports-chosen-before-up.md) `[ ]` | Host ports are chosen before up and survive stop and start | P1 | S | B-04 |
@@ -63,11 +62,12 @@ hypothesis was confirmed or refuted.
 | [B-12](docs/backlog/B-12-s3kn-brings-its-own-minio.md) `[ ]` | s3kn's linuxX64Test brings up its own MinIO | P2 | S | B-10 |
 | [B-13](docs/backlog/B-13-ci-on-a-hosted-runner.md) `[?]` | The suite runs on a hosted runner once the repository has a remote | P2 | S | B-01 |
 
-## Closed (1)
+## Closed (2)
 
 **The client**
 
 - [B-01](docs/backlog/B-01-ping-over-the-socket.md) `[x]` - A linuxX64 test pings Docker over the unix socket
+- [B-02](docs/backlog/B-02-containers-and-typed-errors.md) `[x]` - Containers by label, inspect, pause, stop, start, kill, with typed errors
 
 <!-- END INDEX -->
 
