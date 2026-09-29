@@ -1,7 +1,7 @@
 ---
 id: B-03
 title: "Exec returns the exit code, stdout and stderr separately; logs are readable"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-1-engine
