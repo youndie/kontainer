@@ -1,7 +1,7 @@
 ---
 id: B-02
 title: "Containers by label, inspect, pause, stop, start, kill, with typed errors"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-1-engine

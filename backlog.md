@@ -50,7 +50,7 @@ hypothesis was confirmed or refuted.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-02](docs/backlog/B-02-containers-and-typed-errors.md) `[ ]` | Containers by label, inspect, pause, stop, start, kill, with typed errors | P1 | M | B-01 |
+| [B-02](docs/backlog/B-02-containers-and-typed-errors.md) `[~]` | Containers by label, inspect, pause, stop, start, kill, with typed errors | P1 | M | B-01 |
 | [B-03](docs/backlog/B-03-exec-and-logs.md) `[ ]` | Exec returns the exit code, stdout and stderr separately; logs are readable | P1 | M | B-01 |
 | [B-04](docs/backlog/B-04-fixture-from-compose.md) `[ ]` | A fixture comes up from a compose file under its own project name | P1 | M | B-02 |
 | [B-05](docs/backlog/B-05-ports-chosen-before-up.md) `[ ]` | Host ports are chosen before up and survive stop and start | P1 | S | B-04 |
