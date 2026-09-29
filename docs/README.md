@@ -53,10 +53,12 @@ by a person.
 
 - [x] [research-architecture](research/research-architecture.md) — how native tests get containers today, what the Docker Engine does under pause and stop, decisions and risks
 
-### Services (1)
+### Services (2)
 
 - [x] [kontainer-docker](services/kontainer-docker.md) — the Docker Engine client: containers, pause and stop, exec, logs, typed errors
+- [x] [kontainer](services/kontainer.md) — fixtures from compose, chosen ports, readiness probes
 
-### Features (1)
+### Features (2)
 
 - [x] [feature-engine-client](features/feature-engine-client.md) — talking to the engine over the socket, with answers a test can act on
+- [x] [feature-readiness](features/feature-readiness.md) — ready means the service answered its protocol through the published port

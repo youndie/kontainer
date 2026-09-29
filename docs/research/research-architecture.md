@@ -189,6 +189,10 @@ evidence against it: `compose up --wait` (Healthy while crash-looping, §1.1), a
 container (early by 0.7–0.9 s, §1.1), a TCP connect (accepted while paused, §1.2). The Kafka probe
 does not use kafkakn, because kafkakn will be tested through kontainer.
 
+**Implemented in B-06.** A container that is not running fails at once with its exit code and the end
+of its log: a broker missing `controller.listener.names` exits with code 1 about two seconds after start,
+and its log says `Missing required configuration "controller.listener.names"` (measured).
+
 ### D7. Faults only on a fixture the test owns
 
 Decision: `pause`, `stop` and `kill` refuse on a shared fixture. A fault on the shared broker is the
@@ -235,8 +239,11 @@ class, restored to ready between tests.
 repository has no remote yet (owner's decision, 2026-09-29), so there is no hosted runner to ask.
 Moved from B-01 to B-13.
 
-**H3. A hand-written ApiVersions v0 request is enough to tell a Kafka broker that answers from
-anything else.** Settled by B-06, with the negative control of pointing it at Postgres.
+**H3 — confirmed by B-06.** A hand-written ApiVersions v0 request tells a Kafka broker from anything
+else tried: it succeeded against `apache/kafka:4.3.1`, whose own `kafka-broker-api-versions.sh` agreed,
+and failed against Postgres and against an echo of the request itself. Of its two checks, the response
+size and the correlation id, each alone caught Postgres, so the size check was a guard no test could tell
+apart and was removed; the echo is what exercises the correlation id.
 
 **H4 — refuted by B-04.** `kotlin.test.BeforeClass` and `AfterClass` on a companion object compile and
 run on `linuxX64` (Kotlin 2.4.20): a probe printed its before-class and after-class lines around two

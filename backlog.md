@@ -46,11 +46,10 @@ hypothesis was confirmed or refuted.
 
 <!-- BEGIN INDEX -->
 
-## Open (8)
+## Open (7)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-06](docs/backlog/B-06-readiness-by-protocol.md) `[~]` | Readiness is a protocol answer from the host through the published port | P1 | M | B-02 |
 | [B-07](docs/backlog/B-07-scoped-faults.md) `[ ]` | paused {} and stopped {} restore the service, and refuse on a shared fixture | P1 | S | B-05, B-06 |
 | [B-09](docs/backlog/B-09-kafka-start-time.md) `[ ]` | Measure how long an owned Kafka broker takes to become ready | P1 | S | B-06 |
 | [B-10](docs/backlog/B-10-publish-to-reposilite.md) `[ ]` | Publish kontainer-docker and kontainer to reposilite | P1 | S | B-07 |
@@ -59,7 +58,7 @@ hypothesis was confirmed or refuted.
 | [B-12](docs/backlog/B-12-s3kn-brings-its-own-minio.md) `[ ]` | s3kn's linuxX64Test brings up its own MinIO | P2 | S | B-10 |
 | [B-13](docs/backlog/B-13-ci-on-a-hosted-runner.md) `[?]` | The suite runs on a hosted runner once the repository has a remote | P2 | S | B-01 |
 
-## Closed (5)
+## Closed (6)
 
 **The client**
 
@@ -71,6 +70,7 @@ hypothesis was confirmed or refuted.
 
 - [B-04](docs/backlog/B-04-fixture-from-compose.md) `[x]` - A fixture comes up from a compose file under its own project name
 - [B-05](docs/backlog/B-05-ports-chosen-before-up.md) `[x]` - Host ports are chosen before up and survive stop and start
+- [B-06](docs/backlog/B-06-readiness-by-protocol.md) `[x]` - Readiness is a protocol answer from the host through the published port
 
 <!-- END INDEX -->
 
