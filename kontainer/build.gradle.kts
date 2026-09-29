@@ -14,6 +14,9 @@ kotlin {
             // (`:kontainer` in `kontainer`) makes Gradle generate `getKontainer()` twice.
             api(project(":kontainer-docker"))
             implementation(wip.kotlinx.serialization.json)
+            // Probes: raw TCP for the Kafka and Postgres protocols, the HTTP client for `http`.
+            implementation(libs.ktor.network)
+            implementation(libs.ktor.client.cio)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
