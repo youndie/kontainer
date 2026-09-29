@@ -209,14 +209,17 @@ library's consumers, as in kafkakn and mostik. Code, commits and pull requests a
 
 ## 3. Risks and open questions
 
-**Risk 1. A port picked free is taken before compose binds it.** Mitigation: `up` recognises the
-engine's "port is already allocated" failure, picks new ports and retries a bounded number of times;
-after `up`, the published ports are compared with the chosen ones (D5), so a lost race is an error
-and not a test against the wrong service. Open: how often it happens on the shared box — unmeasured.
+**Risk 1. A port picked free is taken before compose binds it.** Mitigation (B-05): `up` recognises the
+engine's "port is already allocated" failure, picks new ports and retries up to three times; after `up`,
+the published ports are compared with the chosen ones (D5), so a lost race is an error and not a test
+against the wrong service. The retry itself has **no test**: the race cannot be provoked on demand, and
+a test that pre-binds the port would be testing a different failure. Open: how often it happens on the
+shared box — unmeasured.
 
 **Risk 2. A fixture that started and published nothing.** Seen in §1.2: `Started`, an empty port
-list, and a probe answered by somebody else. Mitigation: the post-`up` port check of D5 fails the
-fixture before any probe runs, naming the service and the port.
+list, and a probe answered by somebody else. Mitigation (B-05): the post-`up` port check fails the
+fixture before any probe runs — `PortNotPublished` for nothing, `PortMismatch` for another port, each
+naming the service and the port.
 
 **Risk 3. A killed test process leaves its fixture running.** A native test has no reliable shutdown
 hook. Mitigation: every container carries `kontainer.owner=<pid>@<host>`; the next `up` on that host
