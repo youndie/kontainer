@@ -56,6 +56,9 @@ class FaultsTest {
                 assertFalse(inspect(fixture).running)
                 assertFalse(tcpConnects(port), "a connection to a stopped service's port was accepted")
             }
+            // Asked at once and in-process: `pg_isready` through `docker run` takes long enough on its own to
+            // hide a stopped { } that returned before Postgres was back.
+            Probe.postgres().check("127.0.0.1", port)
             assertEquals(port, fixture.port("pg", 5432))
             assertEquals(0, pgIsReady(port))
         }
