@@ -69,8 +69,9 @@ private suspend fun kafkaApiVersions(
     // Request header v0 and an empty ApiVersions v0 body: api key 18, version 0, correlation id, client id.
     val body = short(18) + short(0) + int(correlation) + short(clientId.size) + clientId
     exchange(host, port, int(body.size) + body) { answer ->
-        val size = answer.int()
-        if (size !in 6..MAX_KAFKA_RESPONSE) throw ProbeFailure("the answer is not Kafka: a response size of $size")
+        // The response size is read and not judged: every non-Kafka answer tried (Postgres, an echo) is
+        // caught by the correlation id, and a size check beside it was a guard no test could tell apart.
+        answer.int()
         val echoed = answer.int()
         if (echoed != correlation) {
             throw ProbeFailure("the answer is not Kafka: correlation id $echoed, not $correlation")
@@ -134,4 +135,3 @@ private fun int(value: Int): ByteArray =
 private fun short(value: Int): ByteArray = byteArrayOf((value ushr 8).toByte(), value.toByte())
 
 private const val PROTOCOL_3_0 = 196_608
-private const val MAX_KAFKA_RESPONSE = 1 shl 20

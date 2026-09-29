@@ -62,6 +62,25 @@ class ReadinessTest {
         }
 
     @Test
+    fun the_kafka_probe_says_no_to_an_echo_of_its_own_request() =
+        // An echo answers with a plausible size and the request's own bytes where the correlation id goes:
+        // only the correlation check tells it from a broker.
+        runTest(timeout = 3.minutes) {
+            withFixture(ECHO, mapOf("echo" to listOf(7000))) { fixture ->
+                val refused =
+                    assertFailsWith<FixtureError.NotReady> {
+                        fixture.awaitReady(
+                            "echo",
+                            7000,
+                            Probe.kafka(),
+                            timeout = 5.seconds,
+                        )
+                    }
+                assertTrue("correlation id" in refused.lastCause, refused.lastCause)
+            }
+        }
+
+    @Test
     fun the_kafka_probe_says_yes_to_a_broker_and_the_broker_agrees() =
         runTest(timeout = 4.minutes) {
             withFixture(kafka(controllerListenerNames = true), mapOf("broker" to listOf(9092))) { fixture ->
@@ -158,6 +177,15 @@ class ReadinessTest {
                 image: postgres:18-alpine
                 environment: { POSTGRES_PASSWORD: kontainer }
                 ports: [ "127.0.0.1:${'$'}{KONTAINER_PORT_PG_5432}:5432" ]
+            """
+
+        val ECHO =
+            """
+            services:
+              echo:
+                image: alpine/socat:latest
+                command: [ "TCP-LISTEN:7000,fork,reuseaddr", "EXEC:cat" ]
+                ports: [ "127.0.0.1:${'$'}{KONTAINER_PORT_ECHO_7000}:7000" ]
             """
 
         val NGINX =
