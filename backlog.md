@@ -50,7 +50,7 @@ hypothesis was confirmed or refuted.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-04](docs/backlog/B-04-fixture-from-compose.md) `[ ]` | A fixture comes up from a compose file under its own project name | P1 | M | B-02 |
+| [B-04](docs/backlog/B-04-fixture-from-compose.md) `[~]` | A fixture comes up from a compose file under its own project name | P1 | M | B-02 |
 | [B-05](docs/backlog/B-05-ports-chosen-before-up.md) `[ ]` | Host ports are chosen before up and survive stop and start | P1 | S | B-04 |
 | [B-06](docs/backlog/B-06-readiness-by-protocol.md) `[ ]` | Readiness is a protocol answer from the host through the published port | P1 | M | B-02 |
 | [B-07](docs/backlog/B-07-scoped-faults.md) `[ ]` | paused {} and stopped {} restore the service, and refuse on a shared fixture | P1 | S | B-05, B-06 |

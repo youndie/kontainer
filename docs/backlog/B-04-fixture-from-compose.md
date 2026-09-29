@@ -1,7 +1,7 @@
 ---
 id: B-04
 title: "A fixture comes up from a compose file under its own project name"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-2-fixture
