@@ -130,8 +130,12 @@ average 8–10 on 20 cores.
 
 Median 5.06 s to ready, spread 5.01–5.34 s. Two limits on these numbers: the probe retries every 200 ms, so
 readiness is resolved to about that; and this box's monotonic clock was once measured about 10 % slow, so the
-wall-clock figures may be up to that much higher. Neither changes the decision below. The same five runs on a
-hosted runner wait for the repository to get a remote (B-13).
+wall-clock figures may be up to that much higher. Neither changes the decision below.
+
+The same five runs on `ubuntu-latest` (`build` dispatched with `kafka-starts=5` on bbc45f1, B-13): ready in
+3 349, 3 460, 3 736, 3 358 and 3 618 ms — median 3.46 s, spread 3.35–3.74 s — with `up` returning in about
+0.4 s. The run's first start, inside `check`, took 7.4 s (`up` 4.5 s): the first container of a fresh runner.
+A hosted runner is faster than the shared, loaded build box, and the decision stands on either.
 
 **Consequence 8.** A broker per fault test costs about five seconds. kafkakn's seven fault tests would add
 about 35 s to a suite that already runs for minutes, so **each fault test gets its own broker**; one fixture per
@@ -257,14 +261,15 @@ reliable shutdown hook. Every container carries `kontainer.owner=<pid>@<host>`; 
 removes owned projects whose owner is dead (`kill(pid, 0)`), prints which and lists them in
 `fixture.reaped`. Shared fixtures, other hosts' and live owners' stay.
 
-**Risk 4 — closed by B-09.** A broker per fault test costs about 5 s on the build box (§1.4), so each fault
-test gets its own. The hosted-runner figure is still to come (B-13).
+**Risk 4 — closed by B-09 and B-13.** A broker per fault test costs about 5 s on the build box and 3.5 s on
+`ubuntu-latest` (§1.4), so each fault test gets its own.
 
 **H1 — confirmed by B-01** (§1.3): the CIO client speaks HTTP over a unix socket on `linuxX64`.
 
-**H2. `ubuntu-latest` runs a Docker Engine that accepts `/v1.44` and has Compose v2.** Open: the
-repository has no remote yet (owner's decision, 2026-09-29), so there is no hosted runner to ask.
-Moved from B-01 to B-13.
+**H2 — confirmed by B-13.** `ubuntu-latest` runs Docker Engine 28.0.4 (API 1.48, minimum 1.24) with Compose
+v2.38.2, and the whole suite — 46 tests over both modules — passes there against it, pinned to `/v1.44`
+(youndie/kontainer#2, 2026-09-30). The first hosted run also found a defect in the tests' own setup that the
+build box hid: with a cold image cache `docker run -d` prints the pull progress before the container id.
 
 **H3 — confirmed by B-06.** A hand-written ApiVersions v0 request tells a Kafka broker from anything
 else tried: it succeeded against `apache/kafka:4.3.1`, whose own `kafka-broker-api-versions.sh` agreed,

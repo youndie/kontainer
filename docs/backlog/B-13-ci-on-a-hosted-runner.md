@@ -1,7 +1,7 @@
 ---
 id: B-13
 title: "The suite runs on a hosted runner once the repository has a remote"
-status: wip
+status: done
 priority: P2
 size: S
 stage: stage-1-engine
@@ -30,7 +30,21 @@ acceptance line that could not be exercised.
 - Anchors: `kontainer-docker/src/commonTest/kotlin/io/github/youndie/kontainer/docker/PingTest.kt`,
   `.github/workflows/`
 
-## Question
+## Question (answered 2026-09-30)
 
-Create the remote now, or keep the repository local until later? Either way nothing else in the
-backlog is blocked by this item.
+Create the remote now, or keep the repository local until later? The owner: public, now.
+
+## Findings (2026-09-30)
+
+- **The remote:** `youndie/kontainer`, public; `main` and the drafts branch pushed. `build` runs on
+  `ubuntu-latest` with the Kotlin/Native cache, runs `./gradlew check`, and refuses a run in which a module
+  produced no linuxX64 results or any failed.
+- **H2 confirmed:** Docker Engine 28.0.4 (API 1.48, minimum 1.24), Compose v2.38.2; `PingTest` printed it and the
+  whole suite passed there (youndie/kontainer#2).
+- **The first hosted run was red, and rightly:** `ContainersTest` got `NoSuchContainer` because the tests' own
+  `DockerCli` read `docker run -d`'s whole output as the id, and a runner without the image prints the pull
+  progress first. The build box's warm cache had hidden it. The helper now takes the last line and checks it is
+  an id.
+- **Kafka on the hosted runner:** five starts, median 3.46 s (research §1.4).
+- **A private name kept out:** a draft of the workflow section named the owner's private infrastructure
+  repository; it was rewritten before the branch was pushed again, and the pushed history carries no trace of it.
