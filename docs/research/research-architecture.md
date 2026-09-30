@@ -46,6 +46,10 @@ Read on each repository's default branch on 2026-09-29.
 instead of behind a switch. That is what the library is for, and its first acceptance criterion is
 kafkakn's seven gated tests running in CI.
 
+**Closed by B-11 (2026-09-30):** five of kafkakn's seven fault tests run in its suite on `linuxX64`, each on a
+broker of its own through kontainer (youndie/kafkakn#134); the shared broker is not touched during the run. The
+remaining two are measurements that stay behind their own switch.
+
 **Consequence 2.** Readiness has been re-learned in every repository, and the wrong answers look the
 same everywhere: `compose --wait`, a probe inside the container, a TCP connect to the published port.
 The one answer that held is "the protocol, from the host, through the port the test uses".

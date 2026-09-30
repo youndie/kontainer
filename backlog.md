@@ -46,14 +46,13 @@ hypothesis was confirmed or refuted.
 
 <!-- BEGIN INDEX -->
 
-## Open (2)
+## Open (1)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-11](docs/backlog/B-11-kafkakn-fault-tests-in-ci.md) `[ ]` | kafkakn's seven fault tests run in CI on their own broker | P1 | M | B-09, B-10 |
 | [B-12](docs/backlog/B-12-s3kn-brings-its-own-minio.md) `[ ]` | s3kn's linuxX64Test brings up its own MinIO | P2 | S | B-10 |
 
-## Closed (11)
+## Closed (12)
 
 **The client**
 
@@ -74,6 +73,7 @@ hypothesis was confirmed or refuted.
 **The consumers**
 
 - [B-10](docs/backlog/B-10-publish-to-reposilite.md) `[x]` - Publish kontainer-docker and kontainer to reposilite
+- [B-11](docs/backlog/B-11-kafkakn-fault-tests-in-ci.md) `[x]` - kafkakn's seven fault tests run in CI on their own broker
 
 <!-- END INDEX -->
 

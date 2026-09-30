@@ -58,8 +58,9 @@ by a person.
 - [x] [kontainer-docker](services/kontainer-docker.md) — the Docker Engine client: containers, pause and stop, exec, logs, typed errors
 - [x] [kontainer](services/kontainer.md) — fixtures from compose, chosen ports, readiness probes
 
-### Features (3)
+### Features (4)
 
 - [x] [feature-engine-client](features/feature-engine-client.md) — talking to the engine over the socket, with answers a test can act on
 - [x] [feature-compose-fixture](features/feature-compose-fixture.md) — owned and shared fixtures from an existing compose file, on chosen ports
+- [x] [feature-fault-injection](features/feature-fault-injection.md) — pause and stop mid-test on an owned fixture; kafkakn's fault tests run in CI on it
 - [x] [feature-readiness](features/feature-readiness.md) — ready means the service answered its protocol through the published port
