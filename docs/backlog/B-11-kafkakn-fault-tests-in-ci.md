@@ -1,7 +1,7 @@
 ---
 id: B-11
 title: "kafkakn's seven fault tests run in CI on their own broker"
-status: open
+status: wip
 priority: P1
 size: M
 stage: stage-3-consumers
