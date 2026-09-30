@@ -1,0 +1,52 @@
+# Every push to main publishes a snapshot to the portfolio's reposilite, with this repository's own token
+# (REPOSILITE_USER / REPOSILITE_SECRET, made for it by the owner's token workflow — B-10).
+#
+# The suite runs again before publishing, although `build` ran it on the same commit: a publish must not
+# depend on another workflow having finished green first, and the two start at the same time.
+name: publish snapshot
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: publish-snapshot
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: youndie/sborka/.github/actions/setup-kotlin@main
+        with:
+          konan-cache: "true"
+
+      - name: Determine version
+        id: ver
+        uses: youndie/sborka/.github/actions/determine-version@main
+
+      - name: Test and publish
+        run: ./gradlew check publishAllPublicationsToWipRepository --stacktrace
+        env:
+          ORG_GRADLE_PROJECT_REPOSILITE_USER: ${{ secrets.REPOSILITE_USER }}
+          ORG_GRADLE_PROJECT_REPOSILITE_SECRET: ${{ secrets.REPOSILITE_SECRET }}
+          ORG_GRADLE_PROJECT_VERSION: ${{ steps.ver.outputs.version }}
+
+  # MERGED IS NOT RELEASED: the proof is a consumer resolving what was published, from the server.
+  consumer:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: What a consumer gets
+        uses: youndie/proba@main
+        with:
+          coordinate: |
+            io.github.youndie.kontainer:kontainer-docker:${{ needs.publish.outputs.version }}
+            io.github.youndie.kontainer:kontainer:${{ needs.publish.outputs.version }}
+          repository: https://reposilite.kotlin.website/snapshots
