@@ -27,15 +27,27 @@ internal object DockerCli {
     }
 
     /**
+     * `docker run -d`, and the id of the container it started. The id is the last line: on a machine
+     * without the image the pull progress comes first on the same output, which a hosted runner showed
+     * and the build box, whose cache was warm, never did (B-13).
+     */
+    fun runDetached(vararg arguments: String): String {
+        val output = run("run", "-d", *arguments)
+        val id = output.lines().last().trim()
+        check(CONTAINER_ID.matches(id)) { "docker run -d printed no container id last: $output" }
+        return id
+    }
+
+    private val CONTAINER_ID = Regex("[0-9a-f]{64}")
+
+    /**
      * A Postgres container with one port published on an ephemeral loopback port and a label unique to
      * this call, so that a filter can only ever match it. Removed by [remove].
      */
     fun startPostgres(): ScratchContainer {
         val mark = "b02-" + Random.nextLong().toULong().toString(36)
         val id =
-            run(
-                "run",
-                "-d",
+            runDetached(
                 "-e",
                 "POSTGRES_PASSWORD=kontainer",
                 "-p",
@@ -58,9 +70,8 @@ internal object DockerCli {
         val mark = "b03-" + Random.nextLong().toULong().toString(36)
         val terminal = if (tty) listOf("-t") else emptyList()
         val arguments =
-            listOf("run", "-d") + terminal +
-                listOf("--label", "kontainer.test=$mark", "postgres:18-alpine", "sh", "-c", "$script; sleep 300")
-        return ScratchContainer(run(*arguments.toTypedArray()), mark)
+            terminal + listOf("--label", "kontainer.test=$mark", "postgres:18-alpine", "sh", "-c", "$script; sleep 300")
+        return ScratchContainer(runDetached(*arguments.toTypedArray()), mark)
     }
 
     fun remove(container: ScratchContainer) {
