@@ -24,30 +24,31 @@ lands. This paragraph is dated so that its age is visible; `backlog.md` is what 
 2. [backlog.md](backlog.md) — the goal, the stages, the index. Items are one file each in
    `docs/backlog/`; take the next unblocked one by priority.
 3. The feature and module documents for the item (`epic` in its frontmatter). Until a document is on
-   `main`, read it from the drafts branch: `git show docs/v1-layers:docs/features/<id>.md`.
+   `main`, read it from the drafts branch: `git show origin/docs/v1-layers:docs/features/<id>.md`.
 
-## Local workflow (no remote)
+## Workflow
 
-The repository has no remote yet, by the owner's decision. The backlog loop (`/loop` over
-`backlog-item`) replaces "push and open a pull request" with a local merge, and **merges its own items
-into `main` on green**:
+The repository is public on GitHub (`youndie/kontainer`) since 2026-09-30. The backlog loop (`/loop` over
+`backlog-item`) opens a pull request per item and **merges its own pull requests on green**, by the owner's
+decision:
 
-1. Branch first, before reading code: `feat/b-NN-<slug>` from `main`; the first commit sets the item
-   to `wip`. Check `git branch --show-current` before every commit.
+1. Branch first, before reading code: `feat/b-NN-<slug>` from `main`; the first commit sets the item to
+   `wip`. Check `git branch --show-current` before every commit and push.
 2. Verify on the Linux build box, not on the Mac: `~/.claude/bin/wsl-run <command>` (mutagen session
    `kontainer`, one-way replica). Anything the build must produce *into the repository* — the Gradle
    wrapper, formatter output, lock files — is produced on the Mac, because the replica never syncs back.
-3. Green means all of: `make check`, `python3 scripts/docs_check.py --on-main` on the result, and the
-   Gradle tasks the item's acceptance names, run on the box, with their result files read. A red run is
-   never merged, and no check is loosened to get green.
-4. Merge: rebase the branch on `main`, `git merge --no-ff feat/b-NN-<slug>` into `main`, message
-   `<type>(<scope>): <subject>` with the acceptance checklist in the body and `Refs: B-NN`. Branches are
-   kept after merging.
-5. Documents: a feature or module document moves from `docs/v1-layers` to `main` as `active` in the
-   item that makes its behaviour real and verified, with `**Automated:**` lines for the scenarios its
-   tests cover. In the same step it is deleted on `docs/v1-layers` (`docs: drop <id>, landed on main`)
-   and `main` is merged into `docs/v1-layers`. That merge conflicts in one place, the coverage map in
-   `docs/README.md`: keep the drafts branch's side, which already lists the landed documents (B-03).
+   `make` targets that only read the documents run on the Mac with `LOCAL=1`.
+3. Green means both required checks, `check` and `build`, concluded `success` **on the pull request's head
+   commit** — decided in `jq` over `gh api …/commits/<sha>/check-runs`, not by grepping `gh pr checks`.
+   A red run is never merged, and no check is loosened to get green.
+4. Merge: `gh pr merge <n> --squash --match-head-commit <full sha>`, the title
+   `<type>(<scope>): <subject>` and `Refs: B-NN` in the body. Branches are kept.
+5. Documents: a feature or module document moves from the drafts branch `docs/v1-layers` to `main` as
+   `active` in the item that makes its behaviour real and verified, with `**Automated:**` lines. In the same
+   step it is deleted on `docs/v1-layers` and `main` is merged into it; that merge conflicts in the coverage
+   map in `docs/README.md` — keep the drafts branch's side, which already lists the landed documents.
+6. Publishing: `main` publishes a snapshot to reposilite with this repository's own token, stored in its
+   secrets as `REPOSILITE_USER` / `REPOSILITE_SECRET` by the owner's token workflow (B-10).
 
 ## Rules
 

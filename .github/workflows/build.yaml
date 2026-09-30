@@ -1,0 +1,72 @@
+# The build and the whole suite, against the runner's own Docker Engine and Compose.
+#
+# ubuntu-latest because the repository is public: hosted runners cost nothing here. The suite needs a real
+# engine — there is no fake — and a hosted runner has one, which is also what research H2 asks about.
+#
+# No path filters, for the reason check.yaml gives: they buy red default branches.
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      kafka-starts:
+        description: Also start an owned Kafka broker this many more times and print each figure (B-09, research 1.4)
+        required: false
+        default: "0"
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: youndie/sborka/.github/actions/setup-kotlin@main
+        with:
+          konan-cache: "true"
+
+      - name: The engine this run is judged against
+        run: |
+          docker version --format 'Docker Engine {{.Server.Version}}, API {{.Server.APIVersion}} (min {{.Server.MinAPIVersion}})'
+          docker compose version
+
+      - run: ./gradlew check --stacktrace
+
+      # THE EXIT CODE IS NOT THE EVIDENCE. A suite that compiled nothing or skipped its way through exits
+      # zero, so every module's linuxX64 results must exist and hold tests, none failed.
+      - name: Every module ran its tests
+        run: |
+          fail=0
+          for module in kontainer-docker kontainer; do
+            dir="$module/build/test-results/linuxX64Test"
+            ls "$dir"/TEST-*.xml > /dev/null 2>&1 || { echo "::error::$module: no linuxX64 test results"; fail=1; continue; }
+            tests=$(grep -ho 'tests="[0-9]*"' "$dir"/TEST-*.xml | grep -oE '[0-9]+' | paste -sd+ | bc)
+            bad=$(grep -hoE '(failures|errors)="[0-9]*"' "$dir"/TEST-*.xml | grep -oE '[0-9]+' | paste -sd+ | bc)
+            echo "$module: $tests tests, $bad failed"
+            [ "$tests" -gt 0 ] && [ "$bad" -eq 0 ] || fail=1
+          done
+          grep -ohE 'Docker Engine [^<]*|KAFKA-START [^<]*' kontainer-docker/build/test-results/linuxX64Test/*.xml kontainer/build/test-results/linuxX64Test/*.xml || true
+          exit $fail
+
+      - name: More Kafka starts, when asked
+        if: github.event_name == 'workflow_dispatch' && inputs.kafka-starts != '0'
+        run: |
+          for i in $(seq 1 "${{ inputs.kafka-starts }}"); do
+            ./gradlew -q :kontainer:linuxX64Test --tests '*KafkaStartTest*' --rerun
+            grep -ohE 'KAFKA-START [^<]*' kontainer/build/test-results/linuxX64Test/*KafkaStartTest.xml
+          done
+
+      - name: Test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: '**/build/reports/tests/**'
+          retention-days: 14
