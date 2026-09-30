@@ -50,6 +50,10 @@ kafkakn's seven gated tests running in CI.
 broker of its own through kontainer (youndie/kafkakn#134); the shared broker is not touched during the run. The
 remaining two are measurements that stay behind their own switch.
 
+**And by B-12:** s3kn's linuxX64 live tests start their own S3 server (SeaweedFS, after MinIO's images vanished
+from every public registry on 2026-09-30) through kontainer, with `Probe.http` and a `custom` probe for a one-shot
+service. Its JVM tests still need the compose step in CI.
+
 **Consequence 2.** Readiness has been re-learned in every repository, and the wrong answers look the
 same everywhere: `compose --wait`, a probe inside the container, a TCP connect to the published port.
 The one answer that held is "the protocol, from the host, through the port the test uses".

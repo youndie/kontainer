@@ -3,11 +3,10 @@
 Containers for Kotlin/Native tests: fixtures from compose files, ports kontainer chooses, readiness by
 protocol, and faults in the middle of a test. v1 is `linuxX64` only; the JVM comes later.
 
-**State (2026-09-30): B-01…B-11 and B-13 done** — `kontainer-docker` is a working Docker Engine client on
+**State (2026-09-30): the backlog is done (B-01…B-13).** `kontainer-docker` is a working Docker Engine client on
 `linuxX64`; the `kontainer` module brings compose fixtures up and down on host ports it chooses, removes those of
 dead processes, waits for readiness by protocol, and pauses or stops a service mid-test. `main` publishes
-`io.github.youndie.kontainer:*:0.1.0.<run>`; kafkakn's fault tests run in its CI on brokers of their own (B-11).
-Next: s3kn's MinIO (B-12). Every feature and module document is on `main` and `active`; the drafts branch `docs/v1-layers` was retired
+`io.github.youndie.kontainer:*:0.1.0.<run>`. Consumers: kafkakn's fault tests (B-11), s3kn's live tests (B-12). Every feature and module document is on `main` and `active`; the drafts branch `docs/v1-layers` was retired
 once the last one landed. This paragraph is dated so that its age is visible; `backlog.md` is what cannot go
 stale.
 
