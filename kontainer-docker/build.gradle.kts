@@ -2,6 +2,7 @@ plugins {
     kotlin("multiplatform")
     id("io.github.youndie.sborka.kmp")
     id("io.github.youndie.sborka.lint")
+    id("io.github.youndie.sborka.publish")
 }
 
 kotlin {

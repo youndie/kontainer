@@ -12,3 +12,4 @@ ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
 [plugins]
 sborkaKmp = { id = "io.github.youndie.sborka.kmp", version.ref = "sborka" }
 sborkaLint = { id = "io.github.youndie.sborka.lint", version.ref = "sborka" }
+sborkaPublish = { id = "io.github.youndie.sborka.publish", version.ref = "sborka" }

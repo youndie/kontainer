@@ -55,6 +55,13 @@ jobs:
           grep -ohE 'Docker Engine [^<]*|KAFKA-START [^<]*' kontainer-docker/build/test-results/linuxX64Test/*.xml kontainer/build/test-results/linuxX64Test/*.xml || true
           exit $fail
 
+      # The publications assemble on every pull request, not only on main: a POM the snapshot job would
+      # refuse is found where it can still be fixed before merging.
+      - name: The publications assemble
+        run: |
+          ./gradlew publishToMavenLocal --stacktrace
+          find ~/.m2/repository/io/github/youndie/kontainer -name '*.pom' -o -name '*.klib' -o -name '*.module' | sort
+
       - name: More Kafka starts, when asked
         if: github.event_name == 'workflow_dispatch' && inputs.kafka-starts != '0'
         run: |
