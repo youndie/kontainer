@@ -13,7 +13,7 @@ blocked_by: [B-06]
 
 Whether kafkakn can give each fault test its own broker depends on how long one takes to answer ApiVersions, and nobody has measured it (research Risk 4).
 
-Feature: `feature-fault-injection` (drafted in the open documentation pull request).
+Feature: [feature-fault-injection](../features/feature-fault-injection.md).
 
 - **Five cold starts each on the build box and on `ubuntu-latest`**, from `up` to the `kafka` probe answering, with the image already pulled; the pull is reported separately.
 - The number decides between a fixture per test and one per test class, and the decision is written into research.

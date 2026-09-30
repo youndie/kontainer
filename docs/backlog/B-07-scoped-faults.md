@@ -13,7 +13,7 @@ blocked_by: [B-05, B-06]
 
 kafkakn's fault tests pair `brokerPaused(true)` with `brokerPaused(false)` in `finally` by hand, and then wait for nothing: the next test finds a broker that may still be waking. They also act on the shared broker, which is why they are gated.
 
-Feature: `feature-fault-injection` (drafted in the open documentation pull request).
+Feature: [feature-fault-injection](../features/feature-fault-injection.md).
 
 - **A scoped call restores the service in `finally` and waits for readiness before returning**, so the next line of the test starts against a ready service.
 - **Faults refuse on a shared fixture** with `SharedFixture` (research D7).

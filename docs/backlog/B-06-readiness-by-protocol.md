@@ -13,7 +13,7 @@ blocked_by: [B-02]
 
 Every wrong readiness check in the portfolio was one of three: `compose up --wait` (Healthy while crash-looping), a probe inside the container (early by 0.7–0.9 s), a TCP connect (accepted by the proxy even while the container is paused). All three are in research §1.
 
-Feature: `feature-readiness` (drafted in the open documentation pull request).
+Feature: [feature-readiness](../features/feature-readiness.md).
 
 - **Probes in v1: `kafka` (ApiVersions), `postgres` (reply to a startup packet), `http` (expected status on a path), `custom`.** Decision of the user; Mongo and SMTP come later.
 - **The Kafka probe does not use kafkakn**, because kafkakn is tested through kontainer.

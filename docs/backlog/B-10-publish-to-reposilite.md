@@ -13,7 +13,7 @@ blocked_by: [B-07]
 
 kafkakn resolves its dependencies from published artefacts; a library that exists only in this repository cannot be tried there.
 
-Feature: `feature-engine-client` (drafted in the open documentation pull request).
+Feature: [feature-engine-client](../features/feature-engine-client.md).
 
 - **reposilite, not Central**, for v1 (decision of the user), through sborka's publish convention, under `io.github.youndie.kontainer`.
 - Rejected: an included build in kafkakn — it would test the consumer against a tree, not a version.

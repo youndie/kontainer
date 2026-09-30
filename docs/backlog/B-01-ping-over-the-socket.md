@@ -12,7 +12,7 @@ epic: feature-engine-client
 
 Everything in kontainer rests on one unverified claim: that Ktor's CIO client speaks HTTP over a unix socket on `linuxX64` (research H1). The documentation says `unixSocket(path)` is a common API and that CIO supports it since Ktor 3.2; nobody here has run it on this target. The second unknown is the runner: whether `ubuntu-latest` accepts `/v1.44` and has Compose v2 (H2).
 
-Feature: `feature-engine-client` (drafted in the open documentation pull request).
+Feature: [feature-engine-client](../features/feature-engine-client.md).
 
 - **A spike with a real assertion, not a prototype.** One `linuxX64Test` calls `GET /_ping` and `GET /version` over `/var/run/docker.sock` (or `DOCKER_HOST=unix://…`) and asserts the server's API version is at least 1.44. It runs on the build box and in CI, because H2 is about CI.
 - The Gradle build, sborka conventions and the CI job that runs `linuxX64Test` arrive here, since this is the first code.

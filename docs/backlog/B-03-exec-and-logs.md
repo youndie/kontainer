@@ -13,7 +13,7 @@ blocked_by: [B-01]
 
 kafkakn's harness asks the broker's own tools for the truth (`docker exec kafkakn-broker kafka-topics.sh …`) and reads failures out of `docker logs`. Inside a test those need the exit code and the two streams apart; `system()` gives an exit code and nothing else.
 
-Feature: `feature-engine-client` (drafted in the open documentation pull request).
+Feature: [feature-engine-client](../features/feature-engine-client.md).
 
 - **Frames are parsed, not stripped.** The body is `[stream, 0, 0, 0, size big-endian]` frames, stdout = 1 and stderr = 2 (measured, research §1.2); the exit code comes from `GET /exec/{id}/json` after the stream ends.
 - Rejected: a TTY exec, which merges the streams and adds carriage returns.

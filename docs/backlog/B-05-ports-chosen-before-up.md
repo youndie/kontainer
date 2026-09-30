@@ -13,7 +13,7 @@ blocked_by: [B-04]
 
 An ephemeral port moved from 37810 to 37811 across one stop/start, and a fixed port on the shared box silently routed a probe to another project's Postgres (research §1.2). A fault test that stops its broker and starts it again must find it where it was.
 
-Feature: `feature-compose-fixture` (drafted in the open documentation pull request).
+Feature: [feature-compose-fixture](../features/feature-compose-fixture.md).
 
 - **kontainer picks each port and passes it as `KONTAINER_PORT_<SERVICE>_<CONTAINER_PORT>`**; the compose file publishes `"127.0.0.1:${KONTAINER_PORT_PG_5432}:5432"`. The same variable is what Kafka's `ADVERTISED_LISTENERS` names.
 - **After `up`, the published ports are compared with the chosen ones**; a mismatch or an empty port list fails the fixture (research Risk 2).
