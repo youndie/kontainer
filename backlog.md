@@ -53,7 +53,7 @@ hypothesis was confirmed or refuted.
 | [B-10](docs/backlog/B-10-publish-to-reposilite.md) `[?]` | Publish kontainer-docker and kontainer to reposilite | P1 | S | B-07 |
 | [B-11](docs/backlog/B-11-kafkakn-fault-tests-in-ci.md) `[ ]` | kafkakn's seven fault tests run in CI on their own broker | P1 | M | B-09, B-10 |
 | [B-12](docs/backlog/B-12-s3kn-brings-its-own-minio.md) `[ ]` | s3kn's linuxX64Test brings up its own MinIO | P2 | S | B-10 |
-| [B-13](docs/backlog/B-13-ci-on-a-hosted-runner.md) `[?]` | The suite runs on a hosted runner once the repository has a remote | P2 | S | B-01 |
+| [B-13](docs/backlog/B-13-ci-on-a-hosted-runner.md) `[~]` | The suite runs on a hosted runner once the repository has a remote | P2 | S | B-01 |
 
 ## Closed (9)
 

@@ -1,7 +1,7 @@
 ---
 id: B-13
 title: "The suite runs on a hosted runner once the repository has a remote"
-status: question
+status: wip
 priority: P2
 size: S
 stage: stage-1-engine
