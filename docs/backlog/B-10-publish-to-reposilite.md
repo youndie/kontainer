@@ -1,7 +1,7 @@
 ---
 id: B-10
 title: "Publish kontainer-docker and kontainer to reposilite"
-status: question
+status: wip
 priority: P1
 size: S
 stage: stage-3-consumers
