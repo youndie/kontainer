@@ -1,7 +1,7 @@
 ---
 id: B-12
 title: "s3kn's linuxX64Test brings up its own MinIO"
-status: open
+status: wip
 priority: P2
 size: S
 stage: stage-3-consumers

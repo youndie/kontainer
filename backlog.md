@@ -50,7 +50,7 @@ hypothesis was confirmed or refuted.
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
-| [B-12](docs/backlog/B-12-s3kn-brings-its-own-minio.md) `[ ]` | s3kn's linuxX64Test brings up its own MinIO | P2 | S | B-10 |
+| [B-12](docs/backlog/B-12-s3kn-brings-its-own-minio.md) `[~]` | s3kn's linuxX64Test brings up its own MinIO | P2 | S | B-10 |
 
 ## Closed (12)
 
