@@ -5,6 +5,7 @@ status: done
 priority: P1
 size: S
 stage: stage-2-fixture
+epic: feature-fault-injection
 blocked_by: [B-06]
 ---
 
