@@ -46,21 +46,21 @@ hypothesis was confirmed or refuted.
 
 <!-- BEGIN INDEX -->
 
-## Open (3)
+## Open (2)
 
 | Task | | Priority | Size | Blocked by |
 |---|---|---|---|---|
 | [B-11](docs/backlog/B-11-kafkakn-fault-tests-in-ci.md) `[ ]` | kafkakn's seven fault tests run in CI on their own broker | P1 | M | B-09, B-10 |
 | [B-12](docs/backlog/B-12-s3kn-brings-its-own-minio.md) `[ ]` | s3kn's linuxX64Test brings up its own MinIO | P2 | S | B-10 |
-| [B-13](docs/backlog/B-13-ci-on-a-hosted-runner.md) `[~]` | The suite runs on a hosted runner once the repository has a remote | P2 | S | B-01 |
 
-## Closed (10)
+## Closed (11)
 
 **The client**
 
 - [B-01](docs/backlog/B-01-ping-over-the-socket.md) `[x]` - A linuxX64 test pings Docker over the unix socket
 - [B-02](docs/backlog/B-02-containers-and-typed-errors.md) `[x]` - Containers by label, inspect, pause, stop, start, kill, with typed errors
 - [B-03](docs/backlog/B-03-exec-and-logs.md) `[x]` - Exec returns the exit code, stdout and stderr separately; logs are readable
+- [B-13](docs/backlog/B-13-ci-on-a-hosted-runner.md) `[x]` - The suite runs on a hosted runner once the repository has a remote
 
 **The fixture**
 
