@@ -2,7 +2,7 @@
 # The client engine that speaks HTTP over a unix socket (CIO, since Ktor 3.2). The same release the
 # rest of the portfolio pins; the compiler comes from sborka's `wip` catalog.
 ktor = "3.6.0"
-sborka = "0.4.0.93"
+sborka = "0.4.0.109"
 
 [libraries]
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

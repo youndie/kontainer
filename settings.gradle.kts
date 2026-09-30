@@ -14,7 +14,7 @@ pluginManagement {
 plugins {
     // The repositories with their content filters, the shared `wip` catalog (which carries the
     // compiler version), and the check that `.editorconfig` is the portfolio's.
-    id("io.github.youndie.sborka.settings") version "0.4.0.93"
+    id("io.github.youndie.sborka.settings") version "0.4.0.109"
 }
 
 rootProject.name = "kontainer"
