@@ -13,7 +13,7 @@ blocked_by: [B-04]
 
 A native test process killed by a timeout or a crash runs no cleanup, and its owned fixture keeps its ports and memory on a box shared by several projects (research Risk 3).
 
-Feature: `feature-compose-fixture` (drafted in the open documentation pull request).
+Feature: [feature-compose-fixture](../features/feature-compose-fixture.md).
 
 - **The owner label is the key**: a project whose `kontainer.owner` names this host and a pid that is not alive is removed with `down -v`, and the removal is logged by project name.
 - Rejected: a reaper container (as Testcontainers' Ryuk) — one more image and a socket mount, for a problem the next run can solve.

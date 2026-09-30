@@ -13,7 +13,7 @@ blocked_by: [B-02]
 
 The fixtures exist as compose files (kafkakn, mostik, s3kn, smtpkn) and are brought up by shell before Gradle runs. Two repositories once shared a project because compose named it after the directory, and one removed the other's broker (kafkakn B-97).
 
-Feature: `feature-compose-fixture` (drafted in the open documentation pull request).
+Feature: [feature-compose-fixture](../features/feature-compose-fixture.md).
 
 - **kontainer always passes `-p`.** Shared fixtures get a fixed name (`kafkakn`), owned ones `kontainer-<pid>-<n>`. Every container is labelled `kontainer.owner=<pid>@<host>`.
 - **`up` and `down` go through the `docker compose` CLI** (research D4); finding the containers afterwards goes through the client, by label.

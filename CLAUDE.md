@@ -7,9 +7,9 @@ protocol, and faults in the middle of a test. v1 is `linuxX64` only; the JVM com
 `linuxX64`; the `kontainer` module brings compose fixtures up and down on host ports it chooses, removes those of
 dead processes, waits for readiness by protocol, and pauses or stops a service mid-test. `main` publishes
 `io.github.youndie.kontainer:*:0.1.0.<run>`; kafkakn's fault tests run in its CI on brokers of their own (B-11).
-Next: s3kn's MinIO (B-12). The research and the backlog are on `main`; the feature and
-module documents are drafted on the branch `docs/v1-layers` and become `active` on `main` as the code
-lands. This paragraph is dated so that its age is visible; `backlog.md` is what cannot go stale.
+Next: s3kn's MinIO (B-12). Every feature and module document is on `main` and `active`; the drafts branch `docs/v1-layers` was retired
+once the last one landed. This paragraph is dated so that its age is visible; `backlog.md` is what cannot go
+stale.
 
 ## How to start a session
 
@@ -24,8 +24,8 @@ lands. This paragraph is dated so that its age is visible; `backlog.md` is what 
      lacks is a broker it may break (D1).
 2. [backlog.md](backlog.md) — the goal, the stages, the index. Items are one file each in
    `docs/backlog/`; take the next unblocked one by priority.
-3. The feature and module documents for the item (`epic` in its frontmatter). Until a document is on
-   `main`, read it from the drafts branch: `git show origin/docs/v1-layers:docs/features/<id>.md`.
+3. The feature and module documents for the item (`epic` in its frontmatter). A new feature is drafted in
+   the pull request of the item that starts it and goes `active` when its behaviour is verified.
 
 ## Workflow
 
@@ -44,10 +44,8 @@ decision:
    A red run is never merged, and no check is loosened to get green.
 4. Merge: `gh pr merge <n> --squash --match-head-commit <full sha>`, the title
    `<type>(<scope>): <subject>` and `Refs: B-NN` in the body. Branches are kept.
-5. Documents: a feature or module document moves from the drafts branch `docs/v1-layers` to `main` as
-   `active` in the item that makes its behaviour real and verified, with `**Automated:**` lines. In the same
-   step it is deleted on `docs/v1-layers` and `main` is merged into it; that merge conflicts in the coverage
-   map in `docs/README.md` — keep the drafts branch's side, which already lists the landed documents.
+5. Documents: a feature or module document is `active` only once its behaviour is real and verified, with
+   `**Automated:**` lines for the scenarios its tests cover; until then it stays in the open pull request.
 6. Publishing: `main` publishes a snapshot to reposilite with this repository's own token, stored in its
    secrets as `REPOSILITE_USER` / `REPOSILITE_SECRET` by the owner's token workflow (B-10).
 
