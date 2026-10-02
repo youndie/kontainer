@@ -67,3 +67,8 @@ make fix        # regenerate the backlog index, fill in missing coverage-map lin
 The checks are docs-bootstrap's, at the version the `uses: youndie/docs-bootstrap@…` line in
 `.github/workflows/check.yaml` pins; the first `make check` fetches that version into `.docs-bootstrap/`
 (it ignores itself). There are no copies under `scripts/` to run by hand.
+
+The code-anchors report blocks (`ANCHORS_ARGS ?= --check` in the Makefile): a path in `docs/` that
+resolves to nothing fails `make check`. A path outside this repository is written as an address —
+`<artefact>!/<path>` inside a versioned artefact, `youndie/<repo>@<commit>!/<path>` in another
+repository (docs-bootstrap SPEC §4.1) — never bare.
