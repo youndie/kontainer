@@ -60,5 +60,10 @@ decision:
 ## Checks
 
 ```bash
-make check
+make check      # the documentation gate and its reports - exactly what CI's check job runs
+make fix        # regenerate the backlog index, fill in missing coverage-map lines
 ```
+
+The checks are docs-bootstrap's, at the version the `uses: youndie/docs-bootstrap@…` line in
+`.github/workflows/check.yaml` pins; the first `make check` fetches that version into `.docs-bootstrap/`
+(it ignores itself). There are no copies under `scripts/` to run by hand.
